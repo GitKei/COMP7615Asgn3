@@ -22,7 +22,7 @@ namespace COMP7615Asgn3
         Model cube;
         Matrix world, view, projection;
 
-        float angle, angleVert;
+        float angle, angleVert, viewdist;
 
         public Game1()
         {
@@ -51,9 +51,10 @@ namespace COMP7615Asgn3
 
             cube = Content.Load<Model>("cube");
 
+            viewdist = -10;
             // Set up WVP Matrices
             world = Matrix.Identity;
-            view = Matrix.CreateTranslation(0f, 0f, -10f);
+            view = Matrix.CreateTranslation(0f, 0f, viewdist);
             projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(70), (float)this.Window.ClientBounds.Width / (float)this.Window.ClientBounds.Height, 1f, 20f);
         }
 
@@ -85,7 +86,11 @@ namespace COMP7615Asgn3
                 angleVert -= 0.01f;
             if (ks.IsKeyDown(Keys.Down))
                 angleVert += 0.01f;
-
+            if (ks.IsKeyDown(Keys.Add))
+                viewdist += 0.01f;
+            if (ks.IsKeyDown(Keys.Subtract))
+                viewdist -= 0.01f;
+            
             if (angle > 2 * Math.PI)
                 angle = 0;
 
@@ -93,9 +98,9 @@ namespace COMP7615Asgn3
                 angleVert = 0;
 
             Matrix R = Matrix.CreateRotationY(angle) * Matrix.CreateRotationX(angleVert) * Matrix.CreateRotationZ(0.4f);
-            Matrix T = Matrix.CreateTranslation(0.0f, 0f, 0f);
+            Matrix T = Matrix.CreateTranslation(0.0f, 0f, viewdist);
             //Matrix S = Matrix.CreateScale(scale);
-            world = R * T;//S * R * T;
+            view = R * T;//S * R * T;
 
             base.Update(gameTime);
         }
@@ -111,13 +116,23 @@ namespace COMP7615Asgn3
             Matrix[] transforms = new Matrix[cube.Bones.Count];
             cube.CopyAbsoluteBoneTransformsTo(transforms);
 
+            Vector3 ambientCol = new Vector3(0.7f, 0.7f, 0.7f);
+            Vector3 diffuseCol = new Vector3(1f, 1f, 1f);
+            Vector3 diffuseDir = new Vector3(0f, -1f, 0f);
+
             foreach (ModelMesh mesh in cube.Meshes)
             {
-                foreach (BasicEffect currentEffect in mesh.Effects)
+                foreach (BasicEffect effect in mesh.Effects)
                 {
-                    currentEffect.World = transforms[mesh.ParentBone.Index] * world;
-                    currentEffect.View = view;
-                    currentEffect.Projection = projection;
+                    effect.LightingEnabled = true;
+                    effect.AmbientLightColor = ambientCol;
+                    effect.DirectionalLight0.Enabled = true;
+                    effect.DirectionalLight0.DiffuseColor = diffuseCol;
+                    effect.DirectionalLight0.Direction = diffuseDir;
+                    
+                    effect.World = transforms[mesh.ParentBone.Index] * world;
+                    effect.View = view;
+                    effect.Projection = projection;
                 }
                 mesh.Draw();
             }
