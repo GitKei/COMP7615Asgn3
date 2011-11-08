@@ -19,6 +19,11 @@ namespace COMP7615Asgn3
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
+        Model cube;
+        Matrix world, view, projection;
+
+        float angle, angleVert;
+
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -33,8 +38,6 @@ namespace COMP7615Asgn3
         /// </summary>
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
-
             base.Initialize();
         }
 
@@ -44,10 +47,14 @@ namespace COMP7615Asgn3
         /// </summary>
         protected override void LoadContent()
         {
-            // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            // TODO: use this.Content to load your game content here
+            cube = Content.Load<Model>("cube");
+
+            // Set up WVP Matrices
+            world = Matrix.Identity;
+            view = Matrix.CreateTranslation(0f, 0f, -10f);
+            projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(70), (float)this.Window.ClientBounds.Width / (float)this.Window.ClientBounds.Height, 1f, 20f);
         }
 
         /// <summary>
@@ -56,7 +63,6 @@ namespace COMP7615Asgn3
         /// </summary>
         protected override void UnloadContent()
         {
-            // TODO: Unload any non ContentManager content here
         }
 
         /// <summary>
@@ -66,11 +72,30 @@ namespace COMP7615Asgn3
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            // Allows the game to exit
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
+            KeyboardState ks = Keyboard.GetState();
+
+            if (ks.IsKeyDown(Keys.Escape))
                 this.Exit();
 
-            // TODO: Add your update logic here
+            if (ks.IsKeyDown(Keys.Left))
+                angle = angle - 0.01f;
+            if (ks.IsKeyDown(Keys.Right))
+                angle = angle + 0.01f;
+            if (ks.IsKeyDown(Keys.Up))
+                angleVert -= 0.01f;
+            if (ks.IsKeyDown(Keys.Down))
+                angleVert += 0.01f;
+
+            if (angle > 2 * Math.PI)
+                angle = 0;
+
+            if (angleVert > 2 * Math.PI)
+                angleVert = 0;
+
+            Matrix R = Matrix.CreateRotationY(angle) * Matrix.CreateRotationX(angleVert) * Matrix.CreateRotationZ(0.4f);
+            Matrix T = Matrix.CreateTranslation(0.0f, 0f, 0f);
+            //Matrix S = Matrix.CreateScale(scale);
+            world = R * T;//S * R * T;
 
             base.Update(gameTime);
         }
@@ -81,9 +106,21 @@ namespace COMP7615Asgn3
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Black);
 
-            // TODO: Add your drawing code here
+            Matrix[] transforms = new Matrix[cube.Bones.Count];
+            cube.CopyAbsoluteBoneTransformsTo(transforms);
+
+            foreach (ModelMesh mesh in cube.Meshes)
+            {
+                foreach (BasicEffect currentEffect in mesh.Effects)
+                {
+                    currentEffect.World = transforms[mesh.ParentBone.Index] * world;
+                    currentEffect.View = view;
+                    currentEffect.Projection = projection;
+                }
+                mesh.Draw();
+            }
 
             base.Draw(gameTime);
         }
