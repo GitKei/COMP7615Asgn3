@@ -35,8 +35,6 @@
       <Importer>FbxImporter</Importer>
       <Processor>ModelProcessor</Processor>
     </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Images\Black.png">
       <Name>Black</Name>
       <Importer>TextureImporter</Importer>
@@ -44,6 +42,13 @@
     </Compile>
     <Compile Include="Images\White.png">
       <Name>White</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Images\Red.png">
+      <Name>Red</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>

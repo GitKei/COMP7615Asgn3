@@ -25,6 +25,9 @@ namespace COMP7615Asgn3
         Matrix world, view, projection;
 
         float angle, angleVert, viewdist;
+        float xTrans, yTrans;
+
+        KeyboardState previousKey;
 
         public Main()
         {
@@ -51,7 +54,9 @@ namespace COMP7615Asgn3
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            maze = new MazeGenerator(Content.Load<Texture2D>("White"), Content.Load<Texture2D>("Black"));
+            maze = new MazeGenerator(Content.Load<Texture2D>("Images/White"),
+                                     Content.Load<Texture2D>("Images/Black"),
+                                     Content.Load<Texture2D>("Images/Red"));
 
             cube = Content.Load<Model>("cube");
 
@@ -94,6 +99,20 @@ namespace COMP7615Asgn3
                 viewdist += 0.01f;
             if (ks.IsKeyDown(Keys.Subtract))
                 viewdist -= 0.01f;
+
+            //if (ks.IsKeyDown(Keys.W))
+            //    yTrans += 0.1f;
+            //if (ks.IsKeyDown(Keys.S))
+            //    yTrans -= 0.1f;
+            //if (ks.IsKeyDown(Keys.A))
+            //    xTrans -= 0.1f;
+            //if (ks.IsKeyDown(Keys.D))
+            //    xTrans += 0.1f;
+
+            maze.Move(ks);
+
+            if (ks.IsKeyDown(Keys.R) && previousKey.IsKeyUp(Keys.R))
+                maze.GenerateMaze();
             
             if (angle > 2 * Math.PI)
                 angle = 0;
@@ -102,9 +121,11 @@ namespace COMP7615Asgn3
                 angleVert = 0;
 
             Matrix R = Matrix.CreateRotationY(angle) * Matrix.CreateRotationX(angleVert) * Matrix.CreateRotationZ(0.4f);
-            Matrix T = Matrix.CreateTranslation(0.0f, 0f, viewdist);
+            Matrix T = Matrix.CreateTranslation(xTrans, yTrans, viewdist);
             //Matrix S = Matrix.CreateScale(scale);
             view = R * T;//S * R * T;
+
+            previousKey = ks;
 
             base.Update(gameTime);
         }
@@ -115,7 +136,13 @@ namespace COMP7615Asgn3
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.Black);
+            GraphicsDevice.Clear(Color.AliceBlue);
+
+            spriteBatch.Begin();
+
+            maze.DrawMap(spriteBatch);
+
+            spriteBatch.End();
 
             Matrix[] transforms = new Matrix[cube.Bones.Count];
             cube.CopyAbsoluteBoneTransformsTo(transforms);
