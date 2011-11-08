@@ -14,17 +14,19 @@ namespace COMP7615Asgn3
     /// <summary>
     /// This is the main type for your game
     /// </summary>
-    public class Game1 : Microsoft.Xna.Framework.Game
+    public class Main : Microsoft.Xna.Framework.Game
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+
+        MazeGenerator maze;
 
         Model cube;
         Matrix world, view, projection;
 
         float angle, angleVert, viewdist;
 
-        public Game1()
+        public Main()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
@@ -48,6 +50,8 @@ namespace COMP7615Asgn3
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
+
+            maze = new MazeGenerator(Content.Load<Texture2D>("White"), Content.Load<Texture2D>("Black"));
 
             cube = Content.Load<Model>("cube");
 
