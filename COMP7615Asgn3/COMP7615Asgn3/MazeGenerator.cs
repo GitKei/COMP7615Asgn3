@@ -75,6 +75,15 @@ namespace COMP7615Asgn3
             cells[0, 1] = 0;
             cells[Defs.MapWidth - 1, Defs.MapHeight - 2] = 0;
             cells[Defs.MapWidth - 2, Defs.MapHeight - 2] = 0;
+
+            // Open Random Paths
+            for (int i = 0; i < Defs.RandomPath; i++)
+            {
+                int x = random.Next(1, Defs.MapWidth - 2);
+                int y = random.Next(1, Defs.MapHeight - 2);
+
+                cells[x, y] = 0;
+            }
         }
 
         private List<Vector2> Mark(int x, int y, List<Vector2> wallList)
@@ -125,6 +134,7 @@ namespace COMP7615Asgn3
                 paths++;
             }
 
+            // Return true only if there is 1 or less adjacent paths
             if (paths <= 1)
                 return true;
 
@@ -166,6 +176,14 @@ namespace COMP7615Asgn3
 
             if (position.X == Defs.MapWidth - 1)
                 GenerateMaze();
+        }
+
+        public int[,] Maze
+        {
+            get
+            {
+                return cells;
+            }
         }
     }
 }

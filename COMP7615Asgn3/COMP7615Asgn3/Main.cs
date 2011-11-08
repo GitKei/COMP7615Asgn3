@@ -19,10 +19,12 @@ namespace COMP7615Asgn3
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
+        bool mazeIsOn;
         MazeGenerator maze;
 
         Model cube;
         Matrix world, view, projection;
+        bool fogIsOn;
 
         float angle, angleVert, viewdist;
         float xTrans, yTrans;
@@ -43,6 +45,9 @@ namespace COMP7615Asgn3
         /// </summary>
         protected override void Initialize()
         {
+            mazeIsOn = false;
+            fogIsOn = false;
+
             base.Initialize();
         }
 
@@ -57,6 +62,8 @@ namespace COMP7615Asgn3
             maze = new MazeGenerator(Content.Load<Texture2D>("Images/White"),
                                      Content.Load<Texture2D>("Images/Black"),
                                      Content.Load<Texture2D>("Images/Red"));
+
+            int[,] mazePos = maze.Maze;
 
             cube = Content.Load<Model>("cube");
 
@@ -84,6 +91,7 @@ namespace COMP7615Asgn3
         {
             KeyboardState ks = Keyboard.GetState();
 
+            // Close Program
             if (ks.IsKeyDown(Keys.Escape))
                 this.Exit();
 
@@ -100,19 +108,33 @@ namespace COMP7615Asgn3
             if (ks.IsKeyDown(Keys.Subtract))
                 viewdist -= 0.01f;
 
-            //if (ks.IsKeyDown(Keys.W))
-            //    yTrans += 0.1f;
-            //if (ks.IsKeyDown(Keys.S))
-            //    yTrans -= 0.1f;
-            //if (ks.IsKeyDown(Keys.A))
-            //    xTrans -= 0.1f;
-            //if (ks.IsKeyDown(Keys.D))
-            //    xTrans += 0.1f;
+            // Activate Map
+            if (ks.IsKeyDown(Keys.M) && previousKey.IsKeyUp(Keys.M))
+                mazeIsOn = !mazeIsOn;
 
-            maze.Move(ks);
+            // Activate Fog
+            if (ks.IsKeyDown(Keys.F) && previousKey.IsKeyUp(Keys.F))
+                fogIsOn = !fogIsOn;
 
-            if (ks.IsKeyDown(Keys.R) && previousKey.IsKeyUp(Keys.R))
-                maze.GenerateMaze();
+            // Show Map
+            if (mazeIsOn)
+            {
+                maze.Move(ks);
+
+                if (ks.IsKeyDown(Keys.R) && previousKey.IsKeyUp(Keys.R))
+                    maze.GenerateMaze();
+            }
+            else
+            {
+                if (ks.IsKeyDown(Keys.W))
+                    yTrans += 0.1f;
+                if (ks.IsKeyDown(Keys.S))
+                    yTrans -= 0.1f;
+                if (ks.IsKeyDown(Keys.A))
+                    xTrans -= 0.1f;
+                if (ks.IsKeyDown(Keys.D))
+                    xTrans += 0.1f;
+            }
             
             if (angle > 2 * Math.PI)
                 angle = 0;
@@ -120,7 +142,7 @@ namespace COMP7615Asgn3
             if (angleVert > 2 * Math.PI)
                 angleVert = 0;
 
-            Matrix R = Matrix.CreateRotationY(angle) * Matrix.CreateRotationX(angleVert) * Matrix.CreateRotationZ(0.4f);
+            Matrix R = Matrix.CreateRotationY(angle) * Matrix.CreateRotationX(angleVert) * Matrix.CreateRotationZ(0.0f);
             Matrix T = Matrix.CreateTranslation(xTrans, yTrans, viewdist);
             //Matrix S = Matrix.CreateScale(scale);
             view = R * T;//S * R * T;
@@ -136,11 +158,12 @@ namespace COMP7615Asgn3
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.AliceBlue);
+            GraphicsDevice.Clear(Color.Black);
 
             spriteBatch.Begin();
 
-            maze.DrawMap(spriteBatch);
+            if(mazeIsOn)
+                maze.DrawMap(spriteBatch);
 
             spriteBatch.End();
 
@@ -160,6 +183,19 @@ namespace COMP7615Asgn3
                     effect.DirectionalLight0.Enabled = true;
                     effect.DirectionalLight0.DiffuseColor = diffuseCol;
                     effect.DirectionalLight0.Direction = diffuseDir;
+
+                    // Fog
+                    if (fogIsOn)
+                    {
+                        effect.FogEnabled = true;
+                        //effect.FogStart = 35.0f;
+                        //effect.FogEnd = 250.0f;
+                        effect.FogColor = new Vector3(250.0f, 250.0f, 250.0f);
+                    }
+                    else
+                    {
+                        effect.FogEnabled = false;
+                    }
                     
                     effect.World = transforms[mesh.ParentBone.Index] * world;
                     effect.View = view;
