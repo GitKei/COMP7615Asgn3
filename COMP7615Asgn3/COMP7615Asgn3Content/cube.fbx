@@ -1685,7 +1685,7 @@ Objects:  {
 		}
 		UseMipMap: 0
 		Filename: "cube_tex.png"
-		RelativeFilename: "C:\Users\Tygraen\Downloads\3d\cube_tex.png"
+		RelativeFilename: "cube_tex.png"
 	}
 	Texture: "Texture::cube_tex_png", "TextureVideoClip" {
 		Type: "TextureVideoClip"
