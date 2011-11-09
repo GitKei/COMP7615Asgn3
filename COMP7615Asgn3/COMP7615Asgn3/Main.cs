@@ -19,15 +19,28 @@ namespace COMP7615Asgn3
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
-        bool mazeIsOn;
+        // Maze
         MazeGenerator maze;
 
-        Model cube;
+        // 3D
         Matrix world, view, projection;
-        bool fogIsOn;
 
+        // Switches
+        bool isMap;
+        bool isFog;
+        bool isDay;
+
+        // Cube
+        List<Cube> cubes;
+        Model cubeModel;
         float angle, angleVert, viewdist;
         float xTrans, yTrans;
+
+        // Lighting
+        private Vector3 ambientDay = new Vector3(0.7f, 0.7f, 0.7f);
+        private Vector3 ambientNight = new Vector3(250f, 250f, 250f);
+        private Vector3 diffuseColor = new Vector3(1f, 1f, 1f);
+        private Vector3 diffuseDirection = new Vector3(0f, -1f, 0f);
 
         KeyboardState previousKey;
 
@@ -45,10 +58,12 @@ namespace COMP7615Asgn3
         /// </summary>
         protected override void Initialize()
         {
-            mazeIsOn = false;
-            fogIsOn = false;
-
             base.Initialize();
+
+            isMap = false;
+            isFog = false;
+
+
         }
 
         /// <summary>
@@ -59,19 +74,22 @@ namespace COMP7615Asgn3
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
+            // Generate Maze
             maze = new MazeGenerator(Content.Load<Texture2D>("Images/White"),
                                      Content.Load<Texture2D>("Images/Black"),
                                      Content.Load<Texture2D>("Images/Red"));
 
-            int[,] mazePos = maze.Maze;
+            // Load Cube Model
+            cubeModel = Content.Load<Model>("cube");
 
-            cube = Content.Load<Model>("cube");
+            CreateMaze(cubeModel);
 
-            viewdist = -10;
+            viewdist = -20;
             // Set up WVP Matrices
             world = Matrix.Identity;
             view = Matrix.CreateTranslation(0f, 0f, viewdist);
-            projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(70), (float)this.Window.ClientBounds.Width / (float)this.Window.ClientBounds.Height, 1f, 20f);
+            //projection = Matrix.CreateOrthographic(MathHelper.ToRadians(70), (float)this.Window.ClientBounds.Width / (float)this.Window.ClientBounds.Height, 1f, 20f);
+            projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(70), (float)this.Window.ClientBounds.Width / (float)this.Window.ClientBounds.Height, 1f, 200f);
         }
 
         /// <summary>
@@ -103,26 +121,33 @@ namespace COMP7615Asgn3
                 angleVert -= 0.01f;
             if (ks.IsKeyDown(Keys.Down))
                 angleVert += 0.01f;
-            if (ks.IsKeyDown(Keys.Add))
-                viewdist += 0.01f;
-            if (ks.IsKeyDown(Keys.Subtract))
-                viewdist -= 0.01f;
+            if (ks.IsKeyDown(Keys.Add) || ks.IsKeyDown(Keys.OemPlus))
+                viewdist += 01.01f;
+            if (ks.IsKeyDown(Keys.Subtract) || ks.IsKeyDown(Keys.OemMinus))
+                viewdist -= 01.01f;
 
             // Activate Map
             if (ks.IsKeyDown(Keys.M) && previousKey.IsKeyUp(Keys.M))
-                mazeIsOn = !mazeIsOn;
+                isMap = !isMap;
 
             // Activate Fog
             if (ks.IsKeyDown(Keys.F) && previousKey.IsKeyUp(Keys.F))
-                fogIsOn = !fogIsOn;
+                isFog = !isFog;
+
+            // Activate Day/Night
+            if (ks.IsKeyDown(Keys.L) && previousKey.IsKeyUp(Keys.L))
+                isDay = !isDay;
 
             // Show Map
-            if (mazeIsOn)
+            if (isMap)
             {
                 maze.Move(ks);
 
                 if (ks.IsKeyDown(Keys.R) && previousKey.IsKeyUp(Keys.R))
+                {
                     maze.GenerateMaze();
+                    CreateMaze(cubeModel);
+                }
             }
             else
             {
@@ -144,8 +169,8 @@ namespace COMP7615Asgn3
 
             Matrix R = Matrix.CreateRotationY(angle) * Matrix.CreateRotationX(angleVert) * Matrix.CreateRotationZ(0.0f);
             Matrix T = Matrix.CreateTranslation(xTrans, yTrans, viewdist);
-            //Matrix S = Matrix.CreateScale(scale);
-            view = R * T;//S * R * T;
+            Matrix S = Matrix.CreateScale(1.0f);
+            view = S * R * T;
 
             previousKey = ks;
 
@@ -160,51 +185,81 @@ namespace COMP7615Asgn3
         {
             GraphicsDevice.Clear(Color.Black);
 
-            spriteBatch.Begin();
+            if (isMap)
+            {
+                // Draw Map
+                spriteBatch.Begin();
 
-            if(mazeIsOn)
                 maze.DrawMap(spriteBatch);
 
-            spriteBatch.End();
-
-            Matrix[] transforms = new Matrix[cube.Bones.Count];
-            cube.CopyAbsoluteBoneTransformsTo(transforms);
-
-            Vector3 ambientCol = new Vector3(0.7f, 0.7f, 0.7f);
-            Vector3 diffuseCol = new Vector3(1f, 1f, 1f);
-            Vector3 diffuseDir = new Vector3(0f, -1f, 0f);
-
-            foreach (ModelMesh mesh in cube.Meshes)
+                spriteBatch.End();
+            }
+            else
             {
-                foreach (BasicEffect effect in mesh.Effects)
+                // Render 3D World
+                foreach (Cube cube in cubes)
                 {
-                    effect.LightingEnabled = true;
-                    effect.AmbientLightColor = ambientCol;
-                    effect.DirectionalLight0.Enabled = true;
-                    effect.DirectionalLight0.DiffuseColor = diffuseCol;
-                    effect.DirectionalLight0.Direction = diffuseDir;
+                    Matrix[] transforms = new Matrix[cube.Model.Bones.Count];
+                    cube.Model.CopyAbsoluteBoneTransformsTo(transforms);
 
-                    // Fog
-                    if (fogIsOn)
+                    foreach (ModelMesh mesh in cube.Model.Meshes)
                     {
-                        effect.FogEnabled = true;
-                        //effect.FogStart = 35.0f;
-                        //effect.FogEnd = 250.0f;
-                        effect.FogColor = new Vector3(250.0f, 250.0f, 250.0f);
+                        foreach (BasicEffect effect in mesh.Effects)
+                        {
+                            effect.LightingEnabled = true;
+
+                            // Day/Night
+                            if (isDay)
+                                effect.AmbientLightColor = ambientDay;
+                            else
+                                effect.AmbientLightColor = ambientNight;
+
+                            effect.DirectionalLight0.Enabled = true;
+                            effect.DirectionalLight0.DiffuseColor = diffuseColor;
+                            effect.DirectionalLight0.Direction = diffuseDirection;
+
+                            // Fog
+                            if (isFog)
+                            {
+                                effect.FogEnabled = true;
+                                //effect.FogStart = 35.0f;
+                                //effect.FogEnd = 250.0f;
+                                effect.FogColor = new Vector3(250.0f, 250.0f, 250.0f);
+                            }
+                            else
+                                effect.FogEnabled = false;
+
+                            Matrix matrixTrans = Matrix.CreateTranslation(cube.Position);
+                            Matrix matrixRot = Matrix.CreateRotationX(-(float)Math.PI / 2);
+
+                            effect.World = transforms[mesh.ParentBone.Index] * matrixTrans * matrixRot * world;
+                            effect.View = view;
+                            effect.Projection = projection;
+                        }
+                        mesh.Draw();
                     }
-                    else
-                    {
-                        effect.FogEnabled = false;
-                    }
-                    
-                    effect.World = transforms[mesh.ParentBone.Index] * world;
-                    effect.View = view;
-                    effect.Projection = projection;
                 }
-                mesh.Draw();
             }
 
             base.Draw(gameTime);
+        }
+
+        private void CreateMaze(Model model)
+        {
+            // Get Maze Array
+            int[,] mazePos = maze.Maze;
+
+            cubes = new List<Cube>();
+
+            // Create 3D Maze
+            for (int width = 0; width < Defs.MapWidth; width++)
+            {
+                for (int height = 0; height < Defs.MapHeight; height++)
+                {
+                    if (mazePos[width, height] == 1)
+                        cubes.Add(new Cube(model, new Vector3(width * 2, height * 2, 1)));
+                }
+            }
         }
     }
 }
