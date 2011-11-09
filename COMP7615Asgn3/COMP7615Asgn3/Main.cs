@@ -230,7 +230,7 @@ namespace COMP7615Asgn3
                                 effect.FogEnabled = false;
 
                             Matrix matrixTrans = Matrix.CreateTranslation(cube.Position);
-                            Matrix matrixRot = Matrix.CreateRotationX(-(float)Math.PI / 2);
+                            Matrix matrixRot = Matrix.CreateRotationX(-(float)Math.PI);
 
                             effect.World = transforms[mesh.ParentBone.Index] * matrixTrans * matrixRot * world;
                             effect.View = view;
@@ -257,9 +257,14 @@ namespace COMP7615Asgn3
                 for (int height = 0; height < Defs.MapHeight; height++)
                 {
                     if (mazePos[width, height] == 1)
-                        cubes.Add(new Cube(model, new Vector3(width * 2, height * 2, 1)));
+                        cubes.Add(new Cube(model, new Vector3(width * 2, height * 2, 0)));
+
+                    // Create Floor
+                    cubes.Add(new Cube(model, new Vector3(width * 2, height * 2, 2)));
                 }
             }
+
+
         }
     }
 }
