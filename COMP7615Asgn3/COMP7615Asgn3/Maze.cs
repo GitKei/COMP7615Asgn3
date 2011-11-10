@@ -178,19 +178,6 @@ namespace COMP7615Asgn3
                 GenerateMaze();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="angleX"></param>
-        /// <param name="angleY"></param>
-        /// <param name="dir">+ve X = Forward, +ve Y = Right</param>
-        public void TryMove(float angleX, float angleY, Vector2 dir)
-        {
-            Vector2 displacement;
-
-            
-        }
-
         public int[,] Cells
         {
             get
