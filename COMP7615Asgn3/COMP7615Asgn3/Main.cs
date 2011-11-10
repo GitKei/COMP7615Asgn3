@@ -20,7 +20,7 @@ namespace COMP7615Asgn3
         SpriteBatch spriteBatch;
 
         // Maze
-        MazeGenerator maze;
+        Maze maze;
 
         // 3D
         Matrix world, view, projection;
@@ -85,7 +85,7 @@ namespace COMP7615Asgn3
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // Generate Maze
-            maze = new MazeGenerator(Content.Load<Texture2D>("Images/White"),
+            maze = new Maze(Content.Load<Texture2D>("Images/White"),
                                      Content.Load<Texture2D>("Images/Black"),
                                      Content.Load<Texture2D>("Images/Red"));
 
@@ -94,12 +94,13 @@ namespace COMP7615Asgn3
 
             CreateMaze(cubeModel);
 
-            viewdist = -20;
+            viewdist = -10;
+            fov = 50;
             
             // Set up WVP Matrices
             world = Matrix.Identity;
             view = Matrix.CreateTranslation(10f, 10f, viewdist);
-            projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(70), (float)this.Window.ClientBounds.Width / (float)this.Window.ClientBounds.Height, 1f, 200f);
+            projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(fov), (float)this.Window.ClientBounds.Width / (float)this.Window.ClientBounds.Height, 1f, 200f);
         }
 
         /// <summary>
@@ -269,7 +270,7 @@ namespace COMP7615Asgn3
 
                 spriteBatch.End();
 
-                GraphicsDevice.BlendState = BlendState.Additive;
+                GraphicsDevice.BlendState = BlendState.Opaque;
                 GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             }
             else
@@ -330,7 +331,7 @@ namespace COMP7615Asgn3
         private void CreateMaze(Model model)
         {
             // Get Maze Array
-            int[,] mazePos = maze.Maze;
+            int[,] mazePos = maze.Cells;
 
             cubes = new List<Cube>();
 
