@@ -48,6 +48,8 @@ namespace COMP7615Asgn3
         Model cartmanModel;
         Vector3 cartmanPosition;
         Vector2 cartmanMapPos;
+        int cartmanFrames;
+        const int frameDelay = 10;
 
         // Lighting
         private Vector3 ambientDay = new Vector3(0.6f, 0.6f, 0.6f);
@@ -104,10 +106,7 @@ namespace COMP7615Asgn3
 
             CreateMaze(cubeModel);
 
-            fov = 70;
-            transX = 0;
-            transZ = -2;
-            angleX = MathHelper.PiOver2;
+            ResetMaze();
             
             // Set up WVP Matrices
             world = Matrix.Identity;
@@ -133,7 +132,7 @@ namespace COMP7615Asgn3
             HandleKeyboard();
             HandleMouse();
             UpdateCamera();
-            EnemyMovement();
+            //EnemyMovement();
 
             base.Update(gameTime);
         }
@@ -228,6 +227,7 @@ namespace COMP7615Asgn3
                 {
                     maze.GenerateMaze();
                     CreateMaze(cubeModel);
+                    ResetMaze();
                 }
             }
             else
@@ -285,43 +285,48 @@ namespace COMP7615Asgn3
 
         private void EnemyMovement()
         {
-            if (cartmanMapPos.X > cartmanPosition.X / 2)
+            if (cartmanFrames % frameDelay == 0)
             {
-                cartmanPosition.X += 1;
-            }
-            else if (cartmanMapPos.X < cartmanPosition.X / 2)
-            {
-                cartmanPosition.X -= 1;
-            }
-            else if (cartmanMapPos.Y < cartmanPosition.Z / 2)
-            {
-                cartmanPosition.Y += 1;
-            }
-            else if (cartmanMapPos.Y > cartmanPosition.Z / 2)
-            {
-                cartmanPosition.Y -= 1;
-            }
-            else
-            {
-                switch (maze.CheckCell(cartmanMapPos))
+                if (cartmanMapPos.X > cartmanPosition.X / 2)
                 {
-                    case (int)Defs.Direction.N:
-                        cartmanMapPos.Y -= 1;
-                        break;
+                    cartmanPosition.X += 2;
+                }
+                else if (cartmanMapPos.X < cartmanPosition.X / 2)
+                {
+                    cartmanPosition.X -= 2;
+                }
+                else if (cartmanMapPos.Y > cartmanPosition.Z / 2)
+                {
+                    cartmanPosition.Y += 2;
+                }
+                else if (cartmanMapPos.Y > cartmanPosition.Z / 2)
+                {
+                    cartmanPosition.Y -= 2;
+                }
+                else
+                {
+                    switch (maze.CheckCell(cartmanMapPos))
+                    {
+                        case (int)Defs.Direction.N:
+                            cartmanMapPos.Y -= 1;
+                            break;
 
-                    case (int)Defs.Direction.S:
-                        cartmanMapPos.Y += 1;
-                        break;
+                        case (int)Defs.Direction.S:
+                            cartmanMapPos.Y += 1;
+                            break;
 
-                    case (int)Defs.Direction.W:
-                        cartmanMapPos.X -= 1;
-                        break;
+                        case (int)Defs.Direction.W:
+                            cartmanMapPos.X -= 1;
+                            break;
 
-                    case (int)Defs.Direction.E:
-                        cartmanMapPos.X += 1;
-                        break;
+                        case (int)Defs.Direction.E:
+                            cartmanMapPos.X += 1;
+                            break;
+                    }
                 }
             }
+
+            cartmanFrames++;
         }
 
         /// <summary>
@@ -461,6 +466,14 @@ namespace COMP7615Asgn3
                     cubes.Add(new Cube(model, new Vector3(width * 2, -2, height * 2)));
                 }
             }
+        }
+
+        private void ResetMaze()
+        {
+            fov = 70;
+            transX = 0;
+            transZ = -2;
+            angleX = MathHelper.PiOver2;
         }
     }
 }
