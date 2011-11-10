@@ -41,7 +41,7 @@ namespace COMP7615Asgn3
         // Cube
         List<Cube> cubes;
         Model cubeModel;
-        float angleX, angleY, angleZ, viewdist;
+        float angleX, angleY, angleZ;
         float transX, transZ;
 
         // Cartman
@@ -104,13 +104,14 @@ namespace COMP7615Asgn3
 
             CreateMaze(cubeModel);
 
-            viewdist = -10;
-            fov = 50;
+            fov = 70;
+            transX = -2;
+            transZ = 0;
             
             // Set up WVP Matrices
             world = Matrix.Identity;
-            view = Matrix.CreateTranslation(10f, 10f, viewdist);
-            projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(fov), (float)this.Window.ClientBounds.Width / (float)this.Window.ClientBounds.Height, 1f, 200f);
+            view = Matrix.Identity;
+            projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(fov), (float)this.Window.ClientBounds.Width / (float)this.Window.ClientBounds.Height, 0.1f, 100f);
         }
 
         /// <summary>
@@ -128,17 +129,63 @@ namespace COMP7615Asgn3
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            Controls();
+            HandleKeyboard();
+            HandleMouse();
+
             UpdateCamera();
 
             base.Update(gameTime);
         }
 
-        private void Controls()
+
+        private Vector2 TryMove(Vector2 desired)
         {
-            KeyboardState ks = Keyboard.GetState();
+            Vector2 currentPos = new Vector2(transX, transZ);
+            Vector2 displacement = currentPos + desired;
+
+            foreach (Cube cube in cubes)
+            {
+                if (cube.Position.Y < -1)
+                    continue;
+
+                // Inside X?
+                if (cube.Position.X - 1 <= displacement.X && displacement.X <= cube.Position.X + 1)
+                    desired.X = 0;
+
+                // Inside Y?
+                if (cube.Position.Z - 1 <= displacement.Y && displacement.Y <= cube.Position.Z + 1)
+                    desired.Y = 0;
+            }   
+
+            return desired;
+        }
+
+        private void HandleMouse()
+        {
             MouseState ms = Mouse.GetState();
 
+            // Mouse Camera
+            if (ms != originalMouse)
+            {
+                float xDifference = (ms.X - originalMouse.X) / 2;
+                float yDifference = (ms.Y - originalMouse.Y) / 2;
+                angleX += 0.01f * xDifference * 1;
+                angleY += 0.01f * yDifference * 1;
+                Mouse.SetPosition(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height / 2);
+            }
+
+            if (ms.LeftButton == ButtonState.Pressed)
+            {
+                float xPart = (float)Math.Sin(angleX) * 0.05f;
+                float zPart = (float)Math.Cos(angleX) * 0.05f;
+                transX -= xPart;
+                transZ += zPart;
+            }
+        }
+        private void HandleKeyboard()
+        {
+            KeyboardState ks = Keyboard.GetState();
+         
             // Close Program
             if (ks.IsKeyDown(Keys.Escape))
                 this.Exit();
@@ -153,21 +200,11 @@ namespace COMP7615Asgn3
             if (ks.IsKeyDown(Keys.Down))
                 angleY += 0.01f;
 
-            // Mouse Camera
-            if (ms != originalMouse)
-            {
-                float xDifference = (ms.X - originalMouse.X) / 2;
-                float yDifference = (ms.Y - originalMouse.Y) / 2;
-                angleX += 0.01f * xDifference * 1;
-                angleY += 0.01f * yDifference * 1;
-                Mouse.SetPosition(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height / 2);
-            }
-
             // Zoom / FOV
             if (ks.IsKeyDown(Keys.Add) || ks.IsKeyDown(Keys.OemPlus))
-                viewdist += 0.01f;
+                fov += 0.1f;
             if (ks.IsKeyDown(Keys.Subtract) || ks.IsKeyDown(Keys.OemMinus))
-                viewdist -= 0.01f;
+                fov -= 0.1f;
 
             // Activate Map
             if (ks.IsKeyDown(Keys.M) && previousKey.IsKeyUp(Keys.M))
@@ -197,9 +234,10 @@ namespace COMP7615Asgn3
                 if (ks.IsKeyDown(Keys.W))
                 {
                     float xPart = (float) Math.Sin(angleX) * 0.05f;
-                    float zPart = (float) Math.Cos(angleX) * 0.05f;
+                    float yPart = (float) Math.Cos(angleX) * 0.05f;
+                    //displacement = TryMove(displacement);
                     transX -= xPart;
-                    transZ += zPart;
+                    transZ += yPart;
                 }
                 if (ks.IsKeyDown(Keys.S))
                 {
@@ -234,6 +272,7 @@ namespace COMP7615Asgn3
             Matrix T = Matrix.CreateTranslation(transX, 0, transZ);
             //Matrix S = Matrix.CreateScale(1.0f);
             view = T * R;
+            projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(fov), (float)this.Window.ClientBounds.Width / (float)this.Window.ClientBounds.Height, 0.1f, 100f);
 
             // Reset Angles
             if (angleX > 2 * Math.PI)

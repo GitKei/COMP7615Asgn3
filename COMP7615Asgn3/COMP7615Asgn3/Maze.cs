@@ -178,47 +178,6 @@ namespace COMP7615Asgn3
                 GenerateMaze();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="angleX"></param>
-        /// <param name="angleY"></param>
-        /// <param name="dir">+ve X = Forward, +ve Y = Right</param>
-        public void TryMove(float angleX, float angleY, Vector2 dir)
-        {
-            Vector2 displacement;
-
-            /*if (dir.X == 1)
-            {
-                float xPart = (float)Math.Sin(angleX) * 0.05f;
-                float zPart = (float)Math.Cos(angleX) * 0.05f;
-                transX -= xPart;
-                transZ += zPart;
-            }
-            else
-            {
-                float xPart = (float)Math.Sin(angleX) * 0.05f;
-                float zPart = (float)Math.Cos(angleX) * 0.05f;
-                transX += xPart;
-                transZ -= zPart;
-            }
-
-            if (ks.IsKeyDown(Keys.A))
-            {
-                float xPart = (float)Math.Cos(angleX) * 0.05f;
-                float zPart = (float)Math.Sin(angleX) * 0.05f;
-                transX += xPart;
-                transZ += zPart;
-            }
-            if (ks.IsKeyDown(Keys.D))
-            {
-                float xPart = (float)Math.Cos(angleX) * 0.05f;
-                float zPart = (float)Math.Sin(angleX) * 0.05f;
-                transX -= xPart;
-                transZ -= zPart;
-            }*/
-        }
-
         public int[,] Cells
         {
             get
