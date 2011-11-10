@@ -188,35 +188,7 @@ namespace COMP7615Asgn3
         {
             Vector2 displacement;
 
-            /*if (dir.X == 1)
-            {
-                float xPart = (float)Math.Sin(angleX) * 0.05f;
-                float zPart = (float)Math.Cos(angleX) * 0.05f;
-                transX -= xPart;
-                transZ += zPart;
-            }
-            else
-            {
-                float xPart = (float)Math.Sin(angleX) * 0.05f;
-                float zPart = (float)Math.Cos(angleX) * 0.05f;
-                transX += xPart;
-                transZ -= zPart;
-            }
-
-            if (ks.IsKeyDown(Keys.A))
-            {
-                float xPart = (float)Math.Cos(angleX) * 0.05f;
-                float zPart = (float)Math.Sin(angleX) * 0.05f;
-                transX += xPart;
-                transZ += zPart;
-            }
-            if (ks.IsKeyDown(Keys.D))
-            {
-                float xPart = (float)Math.Cos(angleX) * 0.05f;
-                float zPart = (float)Math.Sin(angleX) * 0.05f;
-                transX -= xPart;
-                transZ -= zPart;
-            }*/
+            
         }
 
         public int[,] Cells

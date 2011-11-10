@@ -41,7 +41,7 @@ namespace COMP7615Asgn3
         // Cube
         List<Cube> cubes;
         Model cubeModel;
-        float angleX, angleY, angleZ, viewdist;
+        float angleX, angleY, angleZ;
         float transX, transZ;
 
         // Lighting
@@ -94,13 +94,14 @@ namespace COMP7615Asgn3
 
             CreateMaze(cubeModel);
 
-            viewdist = -10;
-            fov = 50;
+            fov = 70;
+            transX = -2;
+            transZ = 0;
             
             // Set up WVP Matrices
             world = Matrix.Identity;
-            view = Matrix.CreateTranslation(10f, 10f, viewdist);
-            projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(fov), (float)this.Window.ClientBounds.Width / (float)this.Window.ClientBounds.Height, 1f, 200f);
+            view = Matrix.Identity;
+            projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(fov), (float)this.Window.ClientBounds.Width / (float)this.Window.ClientBounds.Height, 0.1f, 100f);
         }
 
         /// <summary>
@@ -155,9 +156,9 @@ namespace COMP7615Asgn3
 
             // Zoom / FOV
             if (ks.IsKeyDown(Keys.Add) || ks.IsKeyDown(Keys.OemPlus))
-                viewdist += 0.01f;
+                fov += 0.1f;
             if (ks.IsKeyDown(Keys.Subtract) || ks.IsKeyDown(Keys.OemMinus))
-                viewdist -= 0.01f;
+                fov -= 0.1f;
 
             // Activate Map
             if (ks.IsKeyDown(Keys.M) && previousKey.IsKeyUp(Keys.M))
@@ -243,6 +244,7 @@ namespace COMP7615Asgn3
             Matrix T = Matrix.CreateTranslation(transX, 0, transZ);
             //Matrix S = Matrix.CreateScale(1.0f);
             view = T * R;
+            projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(fov), (float)this.Window.ClientBounds.Width / (float)this.Window.ClientBounds.Height, 0.1f, 100f);
 
             // Reset Angles
             if (angleX > 2 * Math.PI)
