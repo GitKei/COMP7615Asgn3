@@ -183,7 +183,12 @@ namespace COMP7615Asgn3
             else
             {
                 if (ks.IsKeyDown(Keys.W))
-                    transZ += 0.1f;
+                {
+                    float xPart = (float) Math.Sin(angleX) * 0.05f;
+                    float zPart = (float) Math.Cos(angleX) * 0.05f;
+                    transX -= xPart;
+                    transZ += zPart;
+                }
                 if (ks.IsKeyDown(Keys.S))
                     transZ -= 0.1f;
                 if (ks.IsKeyDown(Keys.A))
@@ -219,8 +224,8 @@ namespace COMP7615Asgn3
 
             Matrix R = Matrix.CreateRotationY(angleX) * Matrix.CreateRotationX(angleY) * Matrix.CreateRotationZ(angleZ);
             Matrix T = Matrix.CreateTranslation(transX, 0, transZ);
-            Matrix S = Matrix.CreateScale(1.0f);
-            view = R * T;
+            //Matrix S = Matrix.CreateScale(1.0f);
+            view = T * R;
 
             // Reset Angles
             if (angleX > 2 * Math.PI)
