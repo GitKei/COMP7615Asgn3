@@ -139,26 +139,25 @@ namespace COMP7615Asgn3
         }
 
 
-        private Vector2 TryMove(Vector2 desired)
+        private Vector2 TryMove(Vector2 displacement)
         {
-            Vector2 currentPos = new Vector2(transX, transZ);
-            Vector2 displacement = currentPos + desired;
+            Vector2 currentPos = new Vector2(-transX, transZ);
+            Vector2 movement = currentPos + displacement;
 
             foreach (Cube cube in cubes)
             {
                 if (cube.Position.Y < -1)
                     continue;
 
-                // Inside X?
-                if (cube.Position.X - 1 <= displacement.X && displacement.X <= cube.Position.X + 1)
-                    desired.X = 0;
-
-                // Inside Y?
-                if (cube.Position.Z - 1 <= displacement.Y && displacement.Y <= cube.Position.Z + 1)
-                    desired.Y = 0;
+                // Move X, Z
+                if (cube.Position.X - 1.2 <= movement.X && movement.X <= cube.Position.X + 1.2 && -cube.Position.Z - 1.2 <= movement.Y && movement.Y <= -cube.Position.Z + 1.2)
+                {
+                    displacement.X = 0;
+                    displacement.Y = 0;
+                }
             }   
 
-            return desired;
+            return displacement;
         }
 
         private void HandleMouse()
@@ -236,10 +235,10 @@ namespace COMP7615Asgn3
                 if (ks.IsKeyDown(Keys.W))
                 {
                     float xPart = (float) Math.Sin(angleX) * 0.05f;
-                    float yPart = (float) Math.Cos(angleX) * 0.05f;
-                    //displacement = TryMove(displacement);
-                    transX -= xPart;
-                    transZ += yPart;
+                    float zPart = (float) Math.Cos(angleX) * 0.05f;
+                    Vector2 displacement = TryMove(new Vector2(xPart, zPart));
+                    transX -= displacement.X;
+                    transZ += displacement.Y;
                 }
                 if (ks.IsKeyDown(Keys.S))
                 {
