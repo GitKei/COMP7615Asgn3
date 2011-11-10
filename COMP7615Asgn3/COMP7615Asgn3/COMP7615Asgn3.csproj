@@ -72,6 +72,7 @@
     <Reference Include="System.Net" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cube.cs" />
     <Compile Include="Defs.cs" />
     <Compile Include="MazeGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
