@@ -44,6 +44,11 @@ namespace COMP7615Asgn3
         float angleX, angleY, angleZ, viewdist;
         float transX, transZ;
 
+        // Cartman
+        Model cartmanModel;
+        Vector3 cartmanPosition;
+        Vector2 cartmanMapPos;
+
         // Lighting
         private Vector3 ambientDay = new Vector3(0.6f, 0.6f, 0.6f);
         private Vector3 ambientNight = new Vector3(0.2f, 0.2f, 0.2f);
@@ -88,6 +93,11 @@ namespace COMP7615Asgn3
             maze = new Maze(Content.Load<Texture2D>("Images/White"),
                                      Content.Load<Texture2D>("Images/Black"),
                                      Content.Load<Texture2D>("Images/Red"));
+
+            // Load Cartman
+            cartmanModel = Content.Load<Model>("cartman");
+            cartmanPosition = new Vector3((Defs.MapHeight - 2) * 2, -0.5f, (-Defs.MapWidth + 1) * 2);
+            cartmanMapPos = new Vector2(Defs.MapHeight - 2, Defs.MapWidth - 1);
 
             // Load Cube Model
             cubeModel = Content.Load<Model>("cube");
@@ -233,6 +243,13 @@ namespace COMP7615Asgn3
                 angleY = 0;
         }
 
+        private void EnemyMovement()
+        {
+            int[,] mazeArray = maze.Cells;
+
+            
+        }
+
         /// <summary>
         /// This is called when the game should draw itself.
         /// </summary>
@@ -286,8 +303,6 @@ namespace COMP7615Asgn3
                             if (isFog)
                             {
                                 effect.FogEnabled = true;
-                                //effect.FogStart = 35.0f;
-                                //effect.FogEnd = 250.0f;
                                 effect.FogColor = new Vector3(250.0f, 250.0f, 250.0f);
                             }
                             else
@@ -302,6 +317,51 @@ namespace COMP7615Asgn3
                         }
                         mesh.Draw();
                     }
+                }
+
+                // Render Cartman
+                Matrix[] transform = new Matrix[cartmanModel.Bones.Count];
+                cartmanModel.CopyAbsoluteBoneTransformsTo(transform);
+
+                foreach (ModelMesh mesh in cartmanModel.Meshes)
+                {
+                    foreach (BasicEffect effect in mesh.Effects)
+                    {
+                        effect.LightingEnabled = true;
+                        effect.DirectionalLight0.Enabled = true;
+
+                        // Day/Night
+                        if (isDay)
+                        {
+                            effect.DirectionalLight0.DiffuseColor = diffuseDay;
+                            effect.AmbientLightColor = ambientDay;
+                        }
+                        else
+                        {
+                            effect.DirectionalLight0.DiffuseColor = diffuseNight;
+                            effect.AmbientLightColor = ambientNight;
+                        }
+
+                        effect.DirectionalLight0.Direction = diffuseDirection;
+
+                        // Fog
+                        if (isFog)
+                        {
+                            effect.FogEnabled = true;
+                            effect.FogColor = new Vector3(250.0f, 250.0f, 250.0f);
+                        }
+                        else
+                            effect.FogEnabled = false;
+
+                        Matrix matrixTrans = Matrix.CreateTranslation(cartmanPosition);
+                        Matrix matrixRot = Matrix.CreateRotationX(-(float)MathHelper.PiOver2);
+                        Matrix matrixScale = Matrix.CreateScale(0.1f);
+
+                        effect.World = transform[mesh.ParentBone.Index] * matrixScale * matrixRot * matrixTrans * world;
+                        effect.View = view;
+                        effect.Projection = projection;
+                    }
+                    mesh.Draw();
                 }
             }
 
