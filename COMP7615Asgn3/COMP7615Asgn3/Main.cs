@@ -132,7 +132,7 @@ namespace COMP7615Asgn3
             HandleKeyboard();
             HandleMouse();
             UpdateCamera();
-            //EnemyMovement();
+            EnemyMovement();
 
             base.Update(gameTime);
         }
@@ -297,11 +297,11 @@ namespace COMP7615Asgn3
                 }
                 else if (cartmanMapPos.Y > cartmanPosition.Z / 2)
                 {
-                    cartmanPosition.Y += 2;
+                    cartmanPosition.Z += 2;
                 }
                 else if (cartmanMapPos.Y > cartmanPosition.Z / 2)
                 {
-                    cartmanPosition.Y -= 2;
+                    cartmanPosition.Z -= 2;
                 }
                 else
                 {
