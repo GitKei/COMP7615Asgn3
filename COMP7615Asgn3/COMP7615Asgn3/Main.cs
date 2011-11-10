@@ -96,8 +96,8 @@ namespace COMP7615Asgn3
 
             // Load Cartman
             cartmanModel = Content.Load<Model>("cartman");
-            cartmanPosition = new Vector3((Defs.MapHeight - 2) * 2, -0.5f, (-Defs.MapWidth + 1) * 2);
-            cartmanMapPos = new Vector2(Defs.MapHeight - 2, Defs.MapWidth - 1);
+            cartmanPosition = new Vector3((Defs.MapWidth - 1) * 2, -0.5f, (Defs.MapHeight - 2) * 2);
+            cartmanMapPos = new Vector2(Defs.MapWidth - 1, Defs.MapHeight - 2);
 
             // Load Cube Model
             cubeModel = Content.Load<Model>("cube");
@@ -105,8 +105,9 @@ namespace COMP7615Asgn3
             CreateMaze(cubeModel);
 
             fov = 70;
-            transX = -2;
-            transZ = 0;
+            transX = 0;
+            transZ = -2;
+            angleX = MathHelper.PiOver2;
             
             // Set up WVP Matrices
             world = Matrix.Identity;
@@ -131,8 +132,8 @@ namespace COMP7615Asgn3
         {
             HandleKeyboard();
             HandleMouse();
-
             UpdateCamera();
+            //EnemyMovement();
 
             base.Update(gameTime);
         }
@@ -182,6 +183,7 @@ namespace COMP7615Asgn3
                 transZ += zPart;
             }
         }
+
         private void HandleKeyboard()
         {
             KeyboardState ks = Keyboard.GetState();
@@ -284,9 +286,43 @@ namespace COMP7615Asgn3
 
         private void EnemyMovement()
         {
-            int[,] mazeArray = maze.Cells;
+            if (cartmanMapPos.X > cartmanPosition.X / 2)
+            {
+                cartmanPosition.X += 0.1f;
+            }
+            else if (cartmanMapPos.X < cartmanPosition.X / 2)
+            {
+                cartmanPosition.X -= 0.1f;
+            }
+            else if (cartmanMapPos.Y > cartmanPosition.Z / 2)
+            {
+                cartmanPosition.Y += 0.1f;
+            }
+            else if (cartmanMapPos.Y < cartmanPosition.Z / 2)
+            {
+                cartmanPosition.Y -= 0.1f;
+            }
+            else
+            {
+                switch (maze.CheckCell(cartmanMapPos))
+                {
+                    case (int)Defs.Direction.N:
+                        cartmanMapPos.Y -= 1;
+                        break;
 
-            
+                    case (int)Defs.Direction.S:
+                        cartmanMapPos.Y += 1;
+                        break;
+
+                    case (int)Defs.Direction.W:
+                        cartmanMapPos.X -= 1;
+                        break;
+
+                    case (int)Defs.Direction.E:
+                        cartmanMapPos.X += 1;
+                        break;
+                }
+            }
         }
 
         /// <summary>
@@ -420,10 +456,10 @@ namespace COMP7615Asgn3
                 for (int height = 0; height < Defs.MapHeight; height++)
                 {
                     if (mazePos[width, height] == 1)
-                        cubes.Add(new Cube(model, new Vector3(height * 2, 0, -width * 2)));
+                        cubes.Add(new Cube(model, new Vector3(width * 2, 0, height * 2)));
 
                     // Create Floor
-                    cubes.Add(new Cube(model, new Vector3(height * 2, -2, -width * 2)));
+                    cubes.Add(new Cube(model, new Vector3(width * 2, -2, height * 2)));
                 }
             }
         }

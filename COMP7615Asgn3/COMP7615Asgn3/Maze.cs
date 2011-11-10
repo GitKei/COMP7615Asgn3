@@ -141,6 +141,30 @@ namespace COMP7615Asgn3
             return false;
         }
 
+        public int CheckCell(Vector2 currentCell)
+        {
+            Random random = new Random();
+            int cx = (int)currentCell.X;
+            int cy = (int)currentCell.Y;
+
+            List<int> directions = new List<int>();
+
+            // Check Each Adjacent Cell
+            if (cx + 1 < Defs.MapWidth && cells[cx + 1, cy] == 0)
+                directions.Add((int)Defs.Direction.E);
+
+            if (cx > 0 && cells[cx - 1, cy] == 0)
+                directions.Add((int)Defs.Direction.W);
+
+            if (cy > 0 && cells[cx, cy - 1] == 0)
+                directions.Add((int)Defs.Direction.N);
+
+            if (cy + 1 < Defs.MapHeight && cells[cx, cy + 1] == 0)
+                directions.Add((int)Defs.Direction.S);
+
+            return directions[random.Next(directions.Count)];
+        }
+
         public void DrawMap(SpriteBatch sb)
         {
             for (int w = 0; w < Defs.MapWidth; w++)
