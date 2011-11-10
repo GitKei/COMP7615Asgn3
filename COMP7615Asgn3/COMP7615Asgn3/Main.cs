@@ -45,10 +45,11 @@ namespace COMP7615Asgn3
         float transX, transZ;
 
         // Lighting
-        private Vector3 ambientDay = new Vector3(0.7f, 0.7f, 0.7f);
-        private Vector3 ambientNight = new Vector3(250f, 250f, 250f);
-        private Vector3 diffuseColor = new Vector3(1f, 1f, 1f);
-        private Vector3 diffuseDirection = new Vector3(0f, -1f, 0f);
+        private Vector3 ambientDay = new Vector3(0.6f, 0.6f, 0.6f);
+        private Vector3 ambientNight = new Vector3(0.2f, 0.2f, 0.2f);
+        private Vector3 diffuseDay = new Vector3(0.9f, 0.9f, 0.7f);
+        private Vector3 diffuseNight = new Vector3(0.8f, 0.8f, 0.8f);
+        private Vector3 diffuseDirection = new Vector3(0.1f, -1f, 0.1f);
 
         KeyboardState previousKey;
 
@@ -268,7 +269,7 @@ namespace COMP7615Asgn3
 
                 spriteBatch.End();
 
-                GraphicsDevice.BlendState = BlendState.Opaque;
+                GraphicsDevice.BlendState = BlendState.Additive;
                 GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             }
             else
@@ -284,15 +285,20 @@ namespace COMP7615Asgn3
                         foreach (BasicEffect effect in mesh.Effects)
                         {
                             effect.LightingEnabled = true;
+                            effect.DirectionalLight0.Enabled = true;
 
                             // Day/Night
                             if (isDay)
+                            {
+                                effect.DirectionalLight0.DiffuseColor = diffuseDay;
                                 effect.AmbientLightColor = ambientDay;
+                            }
                             else
+                            {
+                                effect.DirectionalLight0.DiffuseColor = diffuseNight;
                                 effect.AmbientLightColor = ambientNight;
-
-                            effect.DirectionalLight0.Enabled = true;
-                            effect.DirectionalLight0.DiffuseColor = diffuseColor;
+                            }
+                            
                             effect.DirectionalLight0.Direction = diffuseDirection;
 
                             // Fog
