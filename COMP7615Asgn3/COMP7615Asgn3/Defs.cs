@@ -9,7 +9,7 @@ namespace COMP7615Asgn3
     class Defs
     {
         public const int RandomPath = 20;
-        public const int MapWidth = 20;
-        public const int MapHeight = 20;
+        public const int MapWidth = 40;
+        public const int MapHeight = 24;
     }
 }

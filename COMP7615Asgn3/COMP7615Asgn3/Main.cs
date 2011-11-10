@@ -25,6 +25,14 @@ namespace COMP7615Asgn3
         // 3D
         Matrix world, view, projection;
 
+        // Camera
+        Vector3 cameraPosition = new Vector3(0, 0, -50);
+        Vector3 cameraReference = new Vector3(0, 0, 1);
+        float fov = MathHelper.PiOver4;
+
+        // Mouse Camera
+        MouseState originalMouse;
+
         // Switches
         bool isMap;
         bool isFog;
@@ -33,8 +41,8 @@ namespace COMP7615Asgn3
         // Cube
         List<Cube> cubes;
         Model cubeModel;
-        float angle, angleVert, viewdist;
-        float xTrans, yTrans;
+        float angleX, angleY, angleZ, viewdist;
+        float transX, transZ;
 
         // Lighting
         private Vector3 ambientDay = new Vector3(0.7f, 0.7f, 0.7f);
@@ -63,7 +71,8 @@ namespace COMP7615Asgn3
             isMap = false;
             isFog = false;
 
-
+            Mouse.SetPosition(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height / 2);
+            originalMouse = Mouse.GetState();
         }
 
         /// <summary>
@@ -85,10 +94,10 @@ namespace COMP7615Asgn3
             CreateMaze(cubeModel);
 
             viewdist = -20;
+            
             // Set up WVP Matrices
             world = Matrix.Identity;
-            view = Matrix.CreateTranslation(0f, 0f, viewdist);
-            //projection = Matrix.CreateOrthographic(MathHelper.ToRadians(70), (float)this.Window.ClientBounds.Width / (float)this.Window.ClientBounds.Height, 1f, 20f);
+            view = Matrix.CreateTranslation(10f, 10f, viewdist);
             projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(70), (float)this.Window.ClientBounds.Width / (float)this.Window.ClientBounds.Height, 1f, 200f);
         }
 
@@ -107,24 +116,46 @@ namespace COMP7615Asgn3
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            Controls();
+            UpdateCamera();
+
+            base.Update(gameTime);
+        }
+
+        private void Controls()
+        {
             KeyboardState ks = Keyboard.GetState();
+            MouseState ms = Mouse.GetState();
 
             // Close Program
             if (ks.IsKeyDown(Keys.Escape))
                 this.Exit();
 
+            // Camera Angle
             if (ks.IsKeyDown(Keys.Left))
-                angle = angle - 0.01f;
+                angleX -= 0.01f;
             if (ks.IsKeyDown(Keys.Right))
-                angle = angle + 0.01f;
+                angleX += 0.01f;
             if (ks.IsKeyDown(Keys.Up))
-                angleVert -= 0.01f;
+                angleY -= 0.01f;
             if (ks.IsKeyDown(Keys.Down))
-                angleVert += 0.01f;
+                angleY += 0.01f;
+
+            // Mouse Camera
+            if (ms != originalMouse)
+            {
+                float xDifference = (ms.X - originalMouse.X) / 2;
+                float yDifference = (ms.Y - originalMouse.Y) / 2;
+                angleX += 0.01f * xDifference * 1;
+                angleY += 0.01f * yDifference * 1;
+                Mouse.SetPosition(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height / 2);
+            }
+
+            // Zoom / FOV
             if (ks.IsKeyDown(Keys.Add) || ks.IsKeyDown(Keys.OemPlus))
-                viewdist += 01.01f;
+                viewdist += 0.01f;
             if (ks.IsKeyDown(Keys.Subtract) || ks.IsKeyDown(Keys.OemMinus))
-                viewdist -= 01.01f;
+                viewdist -= 0.01f;
 
             // Activate Map
             if (ks.IsKeyDown(Keys.M) && previousKey.IsKeyUp(Keys.M))
@@ -138,9 +169,9 @@ namespace COMP7615Asgn3
             if (ks.IsKeyDown(Keys.L) && previousKey.IsKeyUp(Keys.L))
                 isDay = !isDay;
 
-            // Show Map
             if (isMap)
             {
+                // Show Map
                 maze.Move(ks);
 
                 if (ks.IsKeyDown(Keys.R) && previousKey.IsKeyUp(Keys.R))
@@ -152,29 +183,52 @@ namespace COMP7615Asgn3
             else
             {
                 if (ks.IsKeyDown(Keys.W))
-                    yTrans += 0.1f;
+                    transZ += 0.1f;
                 if (ks.IsKeyDown(Keys.S))
-                    yTrans -= 0.1f;
+                    transZ -= 0.1f;
                 if (ks.IsKeyDown(Keys.A))
-                    xTrans -= 0.1f;
+                    transX += 0.1f;
                 if (ks.IsKeyDown(Keys.D))
-                    xTrans += 0.1f;
+                    transX -= 0.1f;
             }
-            
-            if (angle > 2 * Math.PI)
-                angle = 0;
 
-            if (angleVert > 2 * Math.PI)
-                angleVert = 0;
-
-            Matrix R = Matrix.CreateRotationY(angle) * Matrix.CreateRotationX(angleVert) * Matrix.CreateRotationZ(0.0f);
-            Matrix T = Matrix.CreateTranslation(xTrans, yTrans, viewdist);
-            Matrix S = Matrix.CreateScale(1.0f);
-            view = S * R * T;
-
+            // Set Previous KeyboardState
             previousKey = ks;
+        }
 
-            base.Update(gameTime);
+        private void UpdateCamera()
+        {
+            // Camera
+            Matrix rotationMatrix = Matrix.CreateRotationX(angleY) * Matrix.Invert(Matrix.CreateRotationY(angleX));
+
+            //// Create a vector pointing the direction the camera is facing.
+            //Vector3 transformedReference = Vector3.Transform(cameraReference, rotationMatrix);
+
+            //// Calculate the position the camera is looking at.
+            //Vector3 cameraLookat = cameraPosition + transformedReference;
+
+            //// Set up the view matrix and projection matrix.
+            //view = Matrix.CreateLookAt(cameraPosition, cameraLookat, Vector3.Up);
+
+            //projection = Matrix.CreatePerspectiveFieldOfView(fov, graphics.GraphicsDevice.Viewport.AspectRatio,
+            //                                                 1f, 200f);
+
+            //Matrix T = Matrix.CreateTranslation(transX, 0, transZ);
+            
+            //view *= T;
+
+            Matrix R = Matrix.CreateRotationY(angleX) * Matrix.CreateRotationX(angleY) * Matrix.CreateRotationZ(angleZ);
+            Matrix T = Matrix.CreateTranslation(transX, 0, transZ);
+            Matrix S = Matrix.CreateScale(1.0f);
+            view = R * T;
+
+            // Reset Angles
+            if (angleX > 2 * Math.PI)
+                angleX = 0;
+
+            if (angleY > 2 * Math.PI)
+                angleY = 0;
+
         }
 
         /// <summary>
@@ -193,6 +247,9 @@ namespace COMP7615Asgn3
                 maze.DrawMap(spriteBatch);
 
                 spriteBatch.End();
+
+                GraphicsDevice.BlendState = BlendState.Opaque;
+                GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             }
             else
             {
@@ -232,7 +289,7 @@ namespace COMP7615Asgn3
                             Matrix matrixTrans = Matrix.CreateTranslation(cube.Position);
                             Matrix matrixRot = Matrix.CreateRotationX(-(float)Math.PI);
 
-                            effect.World = transforms[mesh.ParentBone.Index] * matrixTrans * matrixRot * world;
+                            effect.World = transforms[mesh.ParentBone.Index] * matrixTrans * world;
                             effect.View = view;
                             effect.Projection = projection;
                         }
@@ -257,14 +314,12 @@ namespace COMP7615Asgn3
                 for (int height = 0; height < Defs.MapHeight; height++)
                 {
                     if (mazePos[width, height] == 1)
-                        cubes.Add(new Cube(model, new Vector3(width * 2, height * 2, 0)));
+                        cubes.Add(new Cube(model, new Vector3(height * 2, 0, -width * 2)));
 
                     // Create Floor
-                    cubes.Add(new Cube(model, new Vector3(width * 2, height * 2, 2)));
+                    cubes.Add(new Cube(model, new Vector3(height * 2, -2, -width * 2)));
                 }
             }
-
-
         }
     }
 }
