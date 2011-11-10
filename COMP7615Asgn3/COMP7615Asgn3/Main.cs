@@ -244,22 +244,25 @@ namespace COMP7615Asgn3
                 {
                     float xPart = (float)Math.Sin(angleX) * 0.05f;
                     float zPart = (float)Math.Cos(angleX) * 0.05f;
-                    transX += xPart;
-                    transZ -= zPart;
+                    Vector2 displacement = TryMove(new Vector2(-xPart, -zPart));
+                    transX -= displacement.X;
+                    transZ += displacement.Y;
                 }
                 if (ks.IsKeyDown(Keys.A))
                 {
                     float xPart = (float)Math.Cos(angleX) * 0.05f;
                     float zPart = (float)Math.Sin(angleX) * 0.05f;
-                    transX += xPart;
-                    transZ += zPart;
+                    Vector2 displacement = TryMove(new Vector2(-xPart, zPart));
+                    transX -= displacement.X;
+                    transZ += displacement.Y;
                 }
                 if (ks.IsKeyDown(Keys.D))
                 {
                     float xPart = (float)Math.Cos(angleX) * 0.05f;
                     float zPart = (float)Math.Sin(angleX) * 0.05f;
-                    transX -= xPart;
-                    transZ -= zPart;
+                    Vector2 displacement = TryMove(new Vector2(xPart, -zPart));
+                    transX -= displacement.X;
+                    transZ += displacement.Y;
                 }
             }
 
