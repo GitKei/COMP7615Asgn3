@@ -219,25 +219,6 @@ namespace COMP7615Asgn3
 
         private void UpdateCamera()
         {
-            // Camera
-            Matrix rotationMatrix = Matrix.CreateRotationX(angleY) * Matrix.Invert(Matrix.CreateRotationY(angleX));
-
-            //// Create a vector pointing the direction the camera is facing.
-            //Vector3 transformedReference = Vector3.Transform(cameraReference, rotationMatrix);
-
-            //// Calculate the position the camera is looking at.
-            //Vector3 cameraLookat = cameraPosition + transformedReference;
-
-            //// Set up the view matrix and projection matrix.
-            //view = Matrix.CreateLookAt(cameraPosition, cameraLookat, Vector3.Up);
-
-            //projection = Matrix.CreatePerspectiveFieldOfView(fov, graphics.GraphicsDevice.Viewport.AspectRatio,
-            //                                                 1f, 200f);
-
-            //Matrix T = Matrix.CreateTranslation(transX, 0, transZ);
-            
-            //view *= T;
-
             Matrix R = Matrix.CreateRotationY(angleX) * Matrix.CreateRotationX(angleY) * Matrix.CreateRotationZ(angleZ);
             Matrix T = Matrix.CreateTranslation(transX, 0, transZ);
             //Matrix S = Matrix.CreateScale(1.0f);
@@ -249,7 +230,6 @@ namespace COMP7615Asgn3
 
             if (angleY > 2 * Math.PI)
                 angleY = 0;
-
         }
 
         /// <summary>
@@ -269,7 +249,7 @@ namespace COMP7615Asgn3
 
                 spriteBatch.End();
 
-                GraphicsDevice.BlendState = BlendState.Additive;
+                GraphicsDevice.BlendState = BlendState.Opaque;
                 GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             }
             else
