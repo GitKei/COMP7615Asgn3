@@ -51,8 +51,8 @@ namespace COMP7615Asgn3
         const int cartmanFrameDelay = 10;
 
         // Lighting
-        private Vector3 ambientDay = new Vector3(0.6f, 0.6f, 0.6f);
-        private Vector3 ambientNight = new Vector3(0.2f, 0.2f, 0.2f);
+        private Vector3 ambientDay = new Vector3(0.7f, 0.7f, 0.7f);
+        private Vector3 ambientNight = new Vector3(0.1f, 0.1f, 0.1f);
         private Vector3 diffuseDay = new Vector3(0.9f, 0.9f, 0.7f);
         private Vector3 diffuseNight = new Vector3(0.8f, 0.8f, 0.8f);
         private Vector3 diffuseDirection = new Vector3(0.1f, -1f, 0.1f);
@@ -110,7 +110,7 @@ namespace COMP7615Asgn3
 
             CreateMaze(cubeModel);
 
-            ResetMaze();
+            ResetPosition();
             
             // Set up WVP Matrices
             world = Matrix.Identity;
@@ -229,94 +229,90 @@ namespace COMP7615Asgn3
 
             // Home
             if (ks.IsKeyDown(Keys.Home) && previousKey.IsKeyUp(Keys.Home))
-                ResetMaze();
+                ResetPosition();
 
-            if (isMap)
+            // Show Map and Current Position
+            maze.Update(new Vector2(transX * -1, transZ * -1));
+
+            // Generate New Map
+            if (ks.IsKeyDown(Keys.R) && previousKey.IsKeyUp(Keys.R))
             {
-                // Show Map
-                maze.Move(ks);
+                maze.GenerateMaze();
+                CreateMaze(cubeModel);
+                ResetPosition();
+            }
 
-                if (ks.IsKeyDown(Keys.R) && previousKey.IsKeyUp(Keys.R))
+            if (ks.IsKeyDown(Keys.W))
+            {
+                float xPart = (float)Math.Sin(angleX) * 0.05f;
+                float zPart = (float)Math.Cos(angleX) * 0.05f;
+
+                if (isClip)
                 {
-                    maze.GenerateMaze();
-                    CreateMaze(cubeModel);
-                    ResetMaze();
+                    transX -= xPart;
+                    transZ += zPart;
+                }
+                else
+                {
+                    Vector2 displacement = TryMove(new Vector2(xPart, zPart));
+                    transX -= displacement.X;
+                    transZ += displacement.Y;
+                }
+                    
+            }
+            if (ks.IsKeyDown(Keys.S))
+            {
+                float xPart = (float)Math.Sin(angleX) * 0.05f;
+                float zPart = (float)Math.Cos(angleX) * 0.05f;
+
+                if (isClip)
+                {
+                    transX += xPart;
+                    transZ -= zPart;
+                }
+                else
+                {
+                    Vector2 displacement = TryMove(new Vector2(-xPart, -zPart));
+                    transX -= displacement.X;
+                    transZ += displacement.Y;
                 }
             }
-            else
+            if (ks.IsKeyDown(Keys.A))
             {
-                if (ks.IsKeyDown(Keys.W))
+                if (isClip)
                 {
-                    float xPart = (float)Math.Sin(angleX) * 0.05f;
-                    float zPart = (float)Math.Cos(angleX) * 0.05f;
-
-                    if (isClip)
-                    {
-                        transX -= xPart;
-                        transZ += zPart;
-                    }
-                    else
-                    {
-                        Vector2 displacement = TryMove(new Vector2(xPart, zPart));
-                        transX -= displacement.X;
-                        transZ += displacement.Y;
-                    }
-                    
+                    // Needs Fix
+                    float xPart = (float)Math.Cos(angleX) * 0.05f;
+                    float zPart = (float)Math.Sin(angleX) * 0.05f;
+                    transX -= xPart;
+                    transZ += zPart;
                 }
-                if (ks.IsKeyDown(Keys.S))
+                else
                 {
-                    float xPart = (float)Math.Sin(angleX) * 0.05f;
-                    float zPart = (float)Math.Cos(angleX) * 0.05f;
-
-                    if (isClip)
-                    {
-                        transX += xPart;
-                        transZ -= zPart;
-                    }
-                    else
-                    {
-                        Vector2 displacement = TryMove(new Vector2(-xPart, -zPart));
-                        transX -= displacement.X;
-                        transZ += displacement.Y;
-                    }
+                    float xPart = (float)Math.Cos(angleX) * 0.05f;
+                    float zPart = (float)Math.Sin(angleX) * 0.05f;
+                    Vector2 displacement = TryMove(new Vector2(-xPart, zPart));
+                    transX -= displacement.X;
+                    transZ += displacement.Y;
                 }
-                if (ks.IsKeyDown(Keys.A))
+            }
+            if (ks.IsKeyDown(Keys.D))
+            {
+                if (isClip)
                 {
-                    if (isClip)
-                    {
-                        // Needs Fix
-                        float xPart = (float)Math.Cos(angleX) * 0.02f;
-                        float zPart = (float)Math.Sin(angleX) * 0.05f;
-                        transX -= xPart;
-                        transZ += zPart;
-                    }
-                    else
-                    {
-                        float xPart = (float)Math.Cos(angleX) * 0.02f;
-                        float zPart = (float)Math.Sin(angleX) * 0.02f;
-                        Vector2 displacement = TryMove(new Vector2(-xPart, zPart));
-                        transX -= displacement.X;
-                        transZ += displacement.Y;
-                    }
+                    // Needs Fix
+                    float xPart = (float)Math.Cos(angleX) * 0.05f;
+                    float zPart = (float)Math.Sin(angleX) * 0.05f;
+                    transX += xPart;
+                    transZ -= zPart;
                 }
-                if (ks.IsKeyDown(Keys.D))
+                else
                 {
-                    if (isClip)
-                    {
-                        // Needs Fix
-                        float xPart = (float)Math.Cos(angleX) * 0.02f;
-                        float zPart = (float)Math.Sin(angleX) * 0.02f;
-                        transX += xPart;
-                        transZ -= zPart;
-                    }
-                    else
-                    {
-                        float xPart = (float)Math.Cos(angleX) * 0.02f;
-                        float zPart = (float)Math.Sin(angleX) * 0.02f;
-                        Vector2 displacement = TryMove(new Vector2(xPart, -zPart));
-                        transX -= displacement.X;
-                        transZ += displacement.Y;
-                    }
+                    float xPart = (float)Math.Cos(angleX) * 0.05f;
+                    float zPart = (float)Math.Sin(angleX) * 0.05f;
+                    Vector2 displacement = TryMove(new Vector2(xPart, -zPart));
+                    transX -= displacement.X;
+                    transZ += displacement.Y;
                 }
             }
 
@@ -328,7 +324,7 @@ namespace COMP7615Asgn3
         {
             Matrix R = Matrix.CreateRotationY(angleX) * Matrix.CreateRotationX(angleY) * Matrix.CreateRotationZ(angleZ);
             Matrix T = Matrix.CreateTranslation(transX, 0, transZ);
-            //Matrix S = Matrix.CreateScale(1.0f);
+            
             view = T * R;
             projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(fov), (float)this.Window.ClientBounds.Width / (float)this.Window.ClientBounds.Height, 0.1f, 100f);
 
@@ -348,8 +344,6 @@ namespace COMP7615Asgn3
                 {
                     Random random = new Random();
                     cartmanAngle = (float)random.NextDouble() * MathHelper.TwoPi;
-
-                    
 
                     cartmanMoveFrames = 20;
                 }
@@ -372,7 +366,19 @@ namespace COMP7615Asgn3
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.Black);
+            if (isDay)
+                GraphicsDevice.Clear(Color.SkyBlue);
+            else
+                GraphicsDevice.Clear(Color.Black);
+
+            // Render Cubes
+            foreach (Cube cube in cubes)
+            {
+                DrawModel(cube.Model, cube.Position, -(float)Math.PI, 0, 1);
+            }
+
+            // Render Cartman
+            DrawModel(cartmanModel, cartmanPosition, -(float)MathHelper.PiOver2, cartmanAngle, 0.1f);
 
             if (isMap)
             {
@@ -383,107 +389,62 @@ namespace COMP7615Asgn3
 
                 spriteBatch.End();
 
+                // Reset States for Rendering
                 GraphicsDevice.BlendState = BlendState.Opaque;
                 GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             }
-            else
-            {
-                // Render 3D World
-                foreach (Cube cube in cubes)
-                {
-                    Matrix[] transforms = new Matrix[cube.Model.Bones.Count];
-                    cube.Model.CopyAbsoluteBoneTransformsTo(transforms);
-
-                    foreach (ModelMesh mesh in cube.Model.Meshes)
-                    {
-                        foreach (BasicEffect effect in mesh.Effects)
-                        {
-                            effect.LightingEnabled = true;
-                            effect.DirectionalLight0.Enabled = true;
-
-                            // Day/Night
-                            if (isDay)
-                            {
-                                effect.DirectionalLight0.DiffuseColor = diffuseDay;
-                                effect.AmbientLightColor = ambientDay;
-                            }
-                            else
-                            {
-                                effect.DirectionalLight0.DiffuseColor = diffuseNight;
-                                effect.AmbientLightColor = ambientNight;
-                            }
-                            
-                            effect.DirectionalLight0.Direction = diffuseDirection;
-
-                            // Fog
-                            if (isFog)
-                            {
-                                effect.FogEnabled = true;
-                                effect.FogColor = new Vector3(250.0f, 250.0f, 250.0f);
-                            }
-                            else
-                                effect.FogEnabled = false;
-
-                            Matrix matrixTrans = Matrix.CreateTranslation(cube.Position);
-                            Matrix matrixRot = Matrix.CreateRotationX(-(float)Math.PI);
-
-                            effect.World = transforms[mesh.ParentBone.Index] * matrixTrans * world;
-                            effect.View = view;
-                            effect.Projection = projection;
-                        }
-                        mesh.Draw();
-                    }
-                }
-
-                // Render Cartman
-                Matrix[] transform = new Matrix[cartmanModel.Bones.Count];
-                cartmanModel.CopyAbsoluteBoneTransformsTo(transform);
-
-                foreach (ModelMesh mesh in cartmanModel.Meshes)
-                {
-                    foreach (BasicEffect effect in mesh.Effects)
-                    {
-                        effect.LightingEnabled = true;
-                        effect.DirectionalLight0.Enabled = true;
-
-                        // Day/Night
-                        if (isDay)
-                        {
-                            effect.DirectionalLight0.DiffuseColor = diffuseDay;
-                            effect.AmbientLightColor = ambientDay;
-                        }
-                        else
-                        {
-                            effect.DirectionalLight0.DiffuseColor = diffuseNight;
-                            effect.AmbientLightColor = ambientNight;
-                        }
-
-                        effect.DirectionalLight0.Direction = diffuseDirection;
-
-                        // Fog
-                        if (isFog)
-                        {
-                            effect.FogStart = 9.75f;
-                            effect.FogEnd = 10.25f;
-                            effect.FogColor = Color.WhiteSmoke.ToVector3();
-                            effect.FogEnabled = true;
-                        }
-                        else
-                            effect.FogEnabled = false;
-
-                        Matrix matrixTrans = Matrix.CreateTranslation(cartmanPosition);
-                        Matrix matrixRot = Matrix.CreateRotationX(-(float)MathHelper.PiOver2) * Matrix.CreateRotationY((float)Math.Cos(cartmanAngle));
-                        Matrix matrixScale = Matrix.CreateScale(0.1f);
-
-                        effect.World = transform[mesh.ParentBone.Index] * matrixScale * matrixRot * matrixTrans * world;
-                        effect.View = view;
-                        effect.Projection = projection;
-                    }
-                    mesh.Draw();
-                }
-            }
 
             base.Draw(gameTime);
+        }
+
+        private void DrawModel(Model model, Vector3 position, float rotateOnX, float rotateOnY, float scale)
+        {
+            // Render Cartman
+            Matrix[] transformMat = new Matrix[model.Bones.Count];
+            model.CopyAbsoluteBoneTransformsTo(transformMat);
+
+            foreach (ModelMesh mesh in model.Meshes)
+            {
+                foreach (BasicEffect effect in mesh.Effects)
+                {
+                    effect.LightingEnabled = true;
+                    effect.DirectionalLight0.Enabled = true;
+
+                    // Day/Night
+                    if (isDay)
+                    {
+                        effect.DirectionalLight0.DiffuseColor = diffuseDay;
+                        effect.AmbientLightColor = ambientDay;
+                    }
+                    else
+                    {
+                        effect.DirectionalLight0.DiffuseColor = diffuseNight;
+                        effect.AmbientLightColor = ambientNight;
+                    }
+
+                    effect.DirectionalLight0.Direction = diffuseDirection;
+
+                    // Fog
+                    if (isFog)
+                    {
+                        effect.FogStart = 0f;
+                        effect.FogEnd = 10f;
+                        effect.FogColor = new Vector3(1, 1, 1);
+                        effect.FogEnabled = true;
+                    }
+                    else
+                        effect.FogEnabled = false;
+
+                    Matrix matrixTrans = Matrix.CreateTranslation(position);
+                    Matrix matrixRot = Matrix.CreateRotationX(rotateOnX) * Matrix.CreateRotationY(rotateOnY);
+                    Matrix matrixScale = Matrix.CreateScale(scale);
+
+                    effect.World = transformMat[mesh.ParentBone.Index] * matrixScale * matrixRot * matrixTrans * world;
+                    effect.View = view;
+                    effect.Projection = projection;
+                }
+                mesh.Draw();
+            }
         }
 
         private void CreateMaze(Model model)
@@ -507,7 +468,7 @@ namespace COMP7615Asgn3
             }
         }
 
-        private void ResetMaze()
+        private void ResetPosition()
         {
             fov = 70;
             transX = 0;

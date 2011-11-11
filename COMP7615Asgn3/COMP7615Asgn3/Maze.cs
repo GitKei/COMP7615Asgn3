@@ -181,6 +181,11 @@ namespace COMP7615Asgn3
             sb.Draw(redTex, position * 20, Color.White);
         }
 
+        public void Update(Vector2 mapPosition)
+        {
+            position = mapPosition / 2;
+        }
+
         public void Move(KeyboardState ks)
         {
             if (ks.IsKeyDown(Keys.W) && previousKey.IsKeyUp(Keys.W))
