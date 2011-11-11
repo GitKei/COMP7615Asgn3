@@ -37,6 +37,7 @@ namespace COMP7615Asgn3
         bool isMap;
         bool isFog;
         bool isDay;
+        bool isClip;
 
         // Cube
         List<Cube> cubes;
@@ -78,6 +79,8 @@ namespace COMP7615Asgn3
 
             isMap = false;
             isFog = false;
+            isClip = false;
+            isDay = true;
 
             Mouse.SetPosition(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height / 2);
             originalMouse = Mouse.GetState();
@@ -163,16 +166,17 @@ namespace COMP7615Asgn3
         {
             MouseState ms = Mouse.GetState();
 
-            // Mouse Camera
+            // Mouse Locking
             if (ms != originalMouse)
             {
                 float xDifference = (ms.X - originalMouse.X) / 2;
                 float yDifference = (ms.Y - originalMouse.Y) / 2;
-                angleX += 0.01f * xDifference * 1;
-                angleY += 0.01f * yDifference * 1;
+                angleX += 0.01f * xDifference;
+                angleY += 0.01f * yDifference;
                 Mouse.SetPosition(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height / 2);
             }
 
+            // Allow Clipping
             if (ms.LeftButton == ButtonState.Pressed)
             {
                 float xPart = (float)Math.Sin(angleX) * 0.05f;
@@ -206,17 +210,25 @@ namespace COMP7615Asgn3
             if (ks.IsKeyDown(Keys.Subtract) || ks.IsKeyDown(Keys.OemMinus))
                 fov -= 0.1f;
 
-            // Activate Map
+            // Toggle Map
             if (ks.IsKeyDown(Keys.M) && previousKey.IsKeyUp(Keys.M))
                 isMap = !isMap;
 
-            // Activate Fog
+            // Toggle Fog
             if (ks.IsKeyDown(Keys.F) && previousKey.IsKeyUp(Keys.F))
                 isFog = !isFog;
 
-            // Activate Day/Night
+            // Toggle Day/Night
             if (ks.IsKeyDown(Keys.L) && previousKey.IsKeyUp(Keys.L))
                 isDay = !isDay;
+
+            // Toggle Clipping
+            if (ks.IsKeyDown(Keys.C) && previousKey.IsKeyUp(Keys.C))
+                isClip = !isClip;
+
+            // Home
+            if (ks.IsKeyDown(Keys.Home) && previousKey.IsKeyUp(Keys.Home))
+                ResetMaze();
 
             if (isMap)
             {
@@ -234,35 +246,76 @@ namespace COMP7615Asgn3
             {
                 if (ks.IsKeyDown(Keys.W))
                 {
-                    float xPart = (float) Math.Sin(angleX) * 0.05f;
-                    float zPart = (float) Math.Cos(angleX) * 0.05f;
-                    Vector2 displacement = TryMove(new Vector2(xPart, zPart));
-                    transX -= displacement.X;
-                    transZ += displacement.Y;
+                    float xPart = (float)Math.Sin(angleX) * 0.05f;
+                    float zPart = (float)Math.Cos(angleX) * 0.05f;
+
+                    if (isClip)
+                    {
+                        transX -= xPart;
+                        transZ += zPart;
+                    }
+                    else
+                    {
+                        Vector2 displacement = TryMove(new Vector2(xPart, zPart));
+                        transX -= displacement.X;
+                        transZ += displacement.Y;
+                    }
+                    
                 }
                 if (ks.IsKeyDown(Keys.S))
                 {
                     float xPart = (float)Math.Sin(angleX) * 0.05f;
                     float zPart = (float)Math.Cos(angleX) * 0.05f;
-                    Vector2 displacement = TryMove(new Vector2(-xPart, -zPart));
-                    transX -= displacement.X;
-                    transZ += displacement.Y;
+
+                    if (isClip)
+                    {
+                        transX += xPart;
+                        transZ -= zPart;
+                    }
+                    else
+                    {
+                        Vector2 displacement = TryMove(new Vector2(-xPart, -zPart));
+                        transX -= displacement.X;
+                        transZ += displacement.Y;
+                    }
                 }
                 if (ks.IsKeyDown(Keys.A))
                 {
-                    float xPart = (float)Math.Cos(angleX) * 0.05f;
-                    float zPart = (float)Math.Sin(angleX) * 0.05f;
-                    Vector2 displacement = TryMove(new Vector2(-xPart, zPart));
-                    transX -= displacement.X;
-                    transZ += displacement.Y;
+                    if (isClip)
+                    {
+                        // Needs Fix
+                        float xPart = (float)Math.Cos(angleX) * 0.05f;
+                        float zPart = (float)Math.Sin(angleX) * 0.05f;
+                        transX -= xPart;
+                        transZ += zPart;
+                    }
+                    else
+                    {
+                        float xPart = (float)Math.Cos(angleX) * 0.05f;
+                        float zPart = (float)Math.Sin(angleX) * 0.05f;
+                        Vector2 displacement = TryMove(new Vector2(-xPart, zPart));
+                        transX -= displacement.X;
+                        transZ += displacement.Y;
+                    }
                 }
                 if (ks.IsKeyDown(Keys.D))
                 {
-                    float xPart = (float)Math.Cos(angleX) * 0.05f;
-                    float zPart = (float)Math.Sin(angleX) * 0.05f;
-                    Vector2 displacement = TryMove(new Vector2(xPart, -zPart));
-                    transX -= displacement.X;
-                    transZ += displacement.Y;
+                    if (isClip)
+                    {
+                        // Needs Fix
+                        float xPart = (float)Math.Cos(angleX) * 0.05f;
+                        float zPart = (float)Math.Sin(angleX) * 0.05f;
+                        transX += xPart;
+                        transZ -= zPart;
+                    }
+                    else
+                    {
+                        float xPart = (float)Math.Cos(angleX) * 0.05f;
+                        float zPart = (float)Math.Sin(angleX) * 0.05f;
+                        Vector2 displacement = TryMove(new Vector2(xPart, -zPart));
+                        transX -= displacement.X;
+                        transZ += displacement.Y;
+                    }
                 }
             }
 
@@ -290,43 +343,43 @@ namespace COMP7615Asgn3
         {
             if (cartmanFrames % frameDelay == 0)
             {
-                if (cartmanMapPos.X > cartmanPosition.X / 2)
-                {
-                    cartmanPosition.X += 2;
-                }
-                else if (cartmanMapPos.X < cartmanPosition.X / 2)
-                {
-                    cartmanPosition.X -= 2;
-                }
-                else if (cartmanMapPos.Y > cartmanPosition.Z / 2)
-                {
-                    cartmanPosition.Z += 2;
-                }
-                else if (cartmanMapPos.Y > cartmanPosition.Z / 2)
-                {
-                    cartmanPosition.Z -= 2;
-                }
-                else
-                {
-                    switch (maze.CheckCell(cartmanMapPos))
-                    {
-                        case (int)Defs.Direction.N:
-                            cartmanMapPos.Y -= 1;
-                            break;
+                //if (cartmanMapPos.X > cartmanPosition.X / 2)
+                //{
+                //    cartmanPosition.X += 2;
+                //}
+                //else if (cartmanMapPos.X < cartmanPosition.X / 2)
+                //{
+                //    cartmanPosition.X -= 2;
+                //}
+                //else if (cartmanMapPos.Y > cartmanPosition.Z / 2)
+                //{
+                //    cartmanPosition.Z += 2;
+                //}
+                //else if (cartmanMapPos.Y > cartmanPosition.Z / 2)
+                //{
+                //    cartmanPosition.Z -= 2;
+                //}
+                //else
+                //{
+                //    switch (maze.CheckCell(cartmanMapPos))
+                //    {
+                //        case (int)Defs.Direction.N:
+                //            cartmanMapPos.Y -= 1;
+                //            break;
 
-                        case (int)Defs.Direction.S:
-                            cartmanMapPos.Y += 1;
-                            break;
+                //        case (int)Defs.Direction.S:
+                //            cartmanMapPos.Y += 1;
+                //            break;
 
-                        case (int)Defs.Direction.W:
-                            cartmanMapPos.X -= 1;
-                            break;
+                //        case (int)Defs.Direction.W:
+                //            cartmanMapPos.X -= 1;
+                //            break;
 
-                        case (int)Defs.Direction.E:
-                            cartmanMapPos.X += 1;
-                            break;
-                    }
-                }
+                //        case (int)Defs.Direction.E:
+                //            cartmanMapPos.X += 1;
+                //            break;
+                //    }
+                //}
             }
 
             cartmanFrames++;
