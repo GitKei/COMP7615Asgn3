@@ -343,6 +343,14 @@ namespace COMP7615Asgn3
         {
             if (cartmanFrames % frameDelay == 0)
             {
+                float xPart = (float)Math.Sin(-angleX) * 0.05f;
+                float zPart = (float)Math.Cos(-angleX) * 0.05f;
+
+                Vector2 displacement = TryMove(new Vector2(xPart, -zPart));
+
+                cartmanPosition.X -= displacement.X;
+                cartmanPosition.Z += displacement.Y;
+
                 //if (cartmanMapPos.X > cartmanPosition.X / 2)
                 //{
                 //    cartmanPosition.X += 2;
