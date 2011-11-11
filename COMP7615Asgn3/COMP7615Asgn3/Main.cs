@@ -25,13 +25,9 @@ namespace COMP7615Asgn3
         // 3D
         Matrix world, view, projection;
 
-        // Camera
-        Vector3 cameraPosition = new Vector3(0, 0, -50);
-        Vector3 cameraReference = new Vector3(0, 0, 1);
-        float fov = MathHelper.PiOver4;
-
         // Mouse Camera
         MouseState originalMouse;
+        float fov = MathHelper.PiOver4;
 
         // Switches
         bool isMap;
@@ -48,9 +44,11 @@ namespace COMP7615Asgn3
         // Cartman
         Model cartmanModel;
         Vector3 cartmanPosition;
-        Vector2 cartmanMapPos;
+        Vector2 cartmanDirection;
+        float cartmanAngle;
         int cartmanFrames;
-        const int frameDelay = 10;
+        int cartmanMoveFrames;
+        const int cartmanFrameDelay = 10;
 
         // Lighting
         private Vector3 ambientDay = new Vector3(0.6f, 0.6f, 0.6f);
@@ -82,6 +80,8 @@ namespace COMP7615Asgn3
             isClip = false;
             isDay = true;
 
+            angleZ = 0;
+
             Mouse.SetPosition(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height / 2);
             originalMouse = Mouse.GetState();
         }
@@ -102,7 +102,8 @@ namespace COMP7615Asgn3
             // Load Cartman
             cartmanModel = Content.Load<Model>("cartman");
             cartmanPosition = new Vector3((Defs.MapWidth - 1) * 2, -0.5f, (Defs.MapHeight - 2) * 2);
-            cartmanMapPos = new Vector2(Defs.MapWidth - 1, Defs.MapHeight - 2);
+            cartmanDirection = Vector2.Zero;
+            cartmanMoveFrames = 0;
 
             // Load Cube Model
             cubeModel = Content.Load<Model>("cube");
@@ -284,15 +285,15 @@ namespace COMP7615Asgn3
                     if (isClip)
                     {
                         // Needs Fix
-                        float xPart = (float)Math.Cos(angleX) * 0.05f;
+                        float xPart = (float)Math.Cos(angleX) * 0.02f;
                         float zPart = (float)Math.Sin(angleX) * 0.05f;
                         transX -= xPart;
                         transZ += zPart;
                     }
                     else
                     {
-                        float xPart = (float)Math.Cos(angleX) * 0.05f;
-                        float zPart = (float)Math.Sin(angleX) * 0.05f;
+                        float xPart = (float)Math.Cos(angleX) * 0.02f;
+                        float zPart = (float)Math.Sin(angleX) * 0.02f;
                         Vector2 displacement = TryMove(new Vector2(-xPart, zPart));
                         transX -= displacement.X;
                         transZ += displacement.Y;
@@ -303,15 +304,15 @@ namespace COMP7615Asgn3
                     if (isClip)
                     {
                         // Needs Fix
-                        float xPart = (float)Math.Cos(angleX) * 0.05f;
-                        float zPart = (float)Math.Sin(angleX) * 0.05f;
+                        float xPart = (float)Math.Cos(angleX) * 0.02f;
+                        float zPart = (float)Math.Sin(angleX) * 0.02f;
                         transX += xPart;
                         transZ -= zPart;
                     }
                     else
                     {
-                        float xPart = (float)Math.Cos(angleX) * 0.05f;
-                        float zPart = (float)Math.Sin(angleX) * 0.05f;
+                        float xPart = (float)Math.Cos(angleX) * 0.02f;
+                        float zPart = (float)Math.Sin(angleX) * 0.02f;
                         Vector2 displacement = TryMove(new Vector2(xPart, -zPart));
                         transX -= displacement.X;
                         transZ += displacement.Y;
@@ -341,53 +342,25 @@ namespace COMP7615Asgn3
 
         private void EnemyMovement()
         {
-            if (cartmanFrames % frameDelay == 0)
+            if (cartmanFrames % cartmanFrameDelay == 0)
             {
-                float xPart = (float)Math.Sin(-angleX) * 0.05f;
-                float zPart = (float)Math.Cos(-angleX) * 0.05f;
+                if (cartmanMoveFrames <= 0)
+                {
+                    Random random = new Random();
+                    cartmanAngle = (float)random.NextDouble() * MathHelper.TwoPi;
+
+                    
+
+                    cartmanMoveFrames = 20;
+                }
+
+                float xPart = (float)Math.Sin(cartmanAngle) * 0.05f;
+                float zPart = (float)Math.Cos(cartmanAngle) * 0.05f;
 
                 Vector2 displacement = TryMove(new Vector2(xPart, -zPart));
 
                 cartmanPosition.X -= displacement.X;
                 cartmanPosition.Z += displacement.Y;
-
-                //if (cartmanMapPos.X > cartmanPosition.X / 2)
-                //{
-                //    cartmanPosition.X += 2;
-                //}
-                //else if (cartmanMapPos.X < cartmanPosition.X / 2)
-                //{
-                //    cartmanPosition.X -= 2;
-                //}
-                //else if (cartmanMapPos.Y > cartmanPosition.Z / 2)
-                //{
-                //    cartmanPosition.Z += 2;
-                //}
-                //else if (cartmanMapPos.Y > cartmanPosition.Z / 2)
-                //{
-                //    cartmanPosition.Z -= 2;
-                //}
-                //else
-                //{
-                //    switch (maze.CheckCell(cartmanMapPos))
-                //    {
-                //        case (int)Defs.Direction.N:
-                //            cartmanMapPos.Y -= 1;
-                //            break;
-
-                //        case (int)Defs.Direction.S:
-                //            cartmanMapPos.Y += 1;
-                //            break;
-
-                //        case (int)Defs.Direction.W:
-                //            cartmanMapPos.X -= 1;
-                //            break;
-
-                //        case (int)Defs.Direction.E:
-                //            cartmanMapPos.X += 1;
-                //            break;
-                //    }
-                //}
             }
 
             cartmanFrames++;
@@ -490,14 +463,16 @@ namespace COMP7615Asgn3
                         // Fog
                         if (isFog)
                         {
+                            effect.FogStart = 9.75f;
+                            effect.FogEnd = 10.25f;
+                            effect.FogColor = Color.WhiteSmoke.ToVector3();
                             effect.FogEnabled = true;
-                            effect.FogColor = new Vector3(250.0f, 250.0f, 250.0f);
                         }
                         else
                             effect.FogEnabled = false;
 
                         Matrix matrixTrans = Matrix.CreateTranslation(cartmanPosition);
-                        Matrix matrixRot = Matrix.CreateRotationX(-(float)MathHelper.PiOver2);
+                        Matrix matrixRot = Matrix.CreateRotationX(-(float)MathHelper.PiOver2) * Matrix.CreateRotationY((float)Math.Cos(cartmanAngle));
                         Matrix matrixScale = Matrix.CreateScale(0.1f);
 
                         effect.World = transform[mesh.ParentBone.Index] * matrixScale * matrixRot * matrixTrans * world;
