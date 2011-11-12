@@ -329,9 +329,16 @@ namespace COMP7615Asgn3
             base.Draw(gameTime);
         }
 
+        /// <summary>
+        /// Draw the given model.
+        /// </summary>
+        /// <param name="model">The model to draw.</param>
+        /// <param name="position">The world position to draw it at.</param>
+        /// <param name="rotateOnX">The rotation about the X axis to apply.</param>
+        /// <param name="rotateOnY">The rotation about the Y axis to apply.</param>
+        /// <param name="scale">Scaling factor to apply.</param>
         private void DrawModel(Model model, Vector3 position, float rotateOnX, float rotateOnY, float scale)
         {
-            // Render Cartman
             Matrix[] transformMat = new Matrix[model.Bones.Count];
             model.CopyAbsoluteBoneTransformsTo(transformMat);
 
@@ -377,13 +384,6 @@ namespace COMP7615Asgn3
                 }
                 mesh.Draw();
             }
-        }
-
-        private void Flashlight(SpriteBatch sb)
-        {
-            sb.Begin(SpriteSortMode.Immediate, BlendState.Additive);
-
-            sb.End();
         }
 
         /// <summary>

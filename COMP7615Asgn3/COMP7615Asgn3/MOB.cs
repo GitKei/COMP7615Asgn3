@@ -8,9 +8,15 @@ namespace COMP7615Asgn3
 {
     class MOB
     {
-        public float angleX, angleY, angleZ;
-        public float transX, transZ;
+        public float angleX, angleY, angleZ; // The facing of the MOB
+        public float transX, transZ; // The position of the MOB
 
+        /// <summary>
+        /// Call this method when clipping is on to see if the desired movement would run into a wall.
+        /// </summary>
+        /// <param name="displacement">The desired movement vector.</param>
+        /// <param name="walls">The list of walls.</param>
+        /// <returns>The modified movement vector.</returns>
         private Vector2 TryMove(Vector2 displacement, List<Cube> walls)
         {
             Vector2 currentPos = new Vector2(-transX, transZ);
@@ -32,6 +38,12 @@ namespace COMP7615Asgn3
             return displacement;
         }
 
+        /// <summary>
+        /// Call this method to have the MOB move in the given direction relative to its facing.
+        /// </summary>
+        /// <param name="dir">The direction to move.</param>
+        /// <param name="isClip">True if collision is off, false otherwise.</param>
+        /// <param name="walls">The list of collidable walls.</param>
         public void Move(Defs.Move dir, bool isClip, List<Cube> walls)
         {
             float xPart, zPart;

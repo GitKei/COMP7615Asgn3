@@ -19,8 +19,6 @@ namespace COMP7615Asgn3
         Texture2D redTex;
         Vector2 position;
 
-        KeyboardState previousKey;
-
         /// <summary>
         /// Constructor.
         /// </summary>
