@@ -39,14 +39,12 @@ namespace COMP7615Asgn3
         // Cube
         List<Cube> cubes;
         Model cubeModel;
-        float angleX, angleY, angleZ;
-        float transX, transZ;
+
+        MOB player;
+        MOB cartman;
 
         // Cartman
         Model cartmanModel;
-        Vector3 cartmanPosition;
-        Vector2 cartmanDirection;
-        float cartmanAngle;
         int cartmanMoveFrames;
 
         // Lighting
@@ -83,8 +81,6 @@ namespace COMP7615Asgn3
             isClip = false;
             isDay = true;
 
-            angleZ = 0;
-
             Mouse.SetPosition(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height / 2);
             originalMouse = Mouse.GetState();
         }
@@ -102,10 +98,14 @@ namespace COMP7615Asgn3
                                      Content.Load<Texture2D>("Images/Black"),
                                      Content.Load<Texture2D>("Images/Red"));
 
+            player = new MOB();
+            cartman = new MOB();
+
             // Load Cartman
             cartmanModel = Content.Load<Model>("cartman");
-            cartmanPosition = new Vector3((Defs.MapWidth - 1) * 2, -0.5f, (Defs.MapHeight - 2) * 2);
-            cartmanDirection = Vector2.Zero;
+            cartman.transX = (Defs.MapWidth - 1) * 2;
+            cartman.transZ = (Defs.MapHeight - 2) * 2;
+
             cartmanMoveFrames = 0;
 
             // Load Cube Model
@@ -118,14 +118,14 @@ namespace COMP7615Asgn3
             // Flashlight
             flashTexture = Content.Load<Texture2D>("Images/Flashlight");
 
-            Color[] data = new Color[flashTexture.Width * flashTexture.Height];
+            /*Color[] data = new Color[flashTexture.Width * flashTexture.Height];
 
             flashTexture.GetData<Color>(data);
             for (int k = 0; k < data.Length; k++)
             {
                 data[k].A = 127;
             }
-            flashTexture.SetData<Color>(data);
+            flashTexture.SetData<Color>(data);*/
 
             flashPosition = new Vector2(this.Window.ClientBounds.Width / 2 - flashTexture.Width / 2,
                                         this.Window.ClientBounds.Height / 2 - flashTexture.Height / 2);
@@ -159,28 +159,6 @@ namespace COMP7615Asgn3
             base.Update(gameTime);
         }
 
-
-        private Vector2 TryMove(Vector2 displacement)
-        {
-            Vector2 currentPos = new Vector2(-transX, transZ);
-            Vector2 movement = currentPos + displacement;
-
-            foreach (Cube cube in cubes)
-            {
-                if (cube.Position.Y < -1)
-                    continue;
-
-                // Move X, Z
-                if (cube.Position.X - 1.2 <= movement.X && movement.X <= cube.Position.X + 1.2 && -cube.Position.Z - 1.2 <= movement.Y && movement.Y <= -cube.Position.Z + 1.2)
-                {
-                    displacement.X = 0;
-                    displacement.Y = 0;
-                }
-            }   
-
-            return displacement;
-        }
-
         private void HandleMouse()
         {
             MouseState ms = Mouse.GetState();
@@ -190,18 +168,9 @@ namespace COMP7615Asgn3
             {
                 float xDifference = (ms.X - originalMouse.X) / 2;
                 float yDifference = (ms.Y - originalMouse.Y) / 2;
-                angleX += 0.01f * xDifference;
-                angleY += 0.01f * yDifference;
+                player.angleX += 0.01f * xDifference;
+                player.angleY += 0.01f * yDifference;
                 Mouse.SetPosition(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height / 2);
-            }
-
-            // Allow Clipping
-            if (ms.LeftButton == ButtonState.Pressed)
-            {
-                float xPart = (float)Math.Sin(angleX) * 0.05f;
-                float zPart = (float)Math.Cos(angleX) * 0.05f;
-                transX -= xPart;
-                transZ += zPart;
             }
         }
 
@@ -215,19 +184,19 @@ namespace COMP7615Asgn3
 
             // Camera Angle
             if (ks.IsKeyDown(Keys.Left))
-                angleX -= 0.01f;
+                player.angleX -= 0.01f;
             if (ks.IsKeyDown(Keys.Right))
-                angleX += 0.01f;
+                player.angleX += 0.01f;
             if (ks.IsKeyDown(Keys.Up))
-                angleY -= 0.01f;
+                player.angleY -= 0.01f;
             if (ks.IsKeyDown(Keys.Down))
-                angleY += 0.01f;
+                player.angleY += 0.01f;
 
             // Zoom / FOV
             if (ks.IsKeyDown(Keys.Add) || ks.IsKeyDown(Keys.OemPlus))
-                fov += 0.1f;
-            if (ks.IsKeyDown(Keys.Subtract) || ks.IsKeyDown(Keys.OemMinus))
                 fov -= 0.1f;
+            if (ks.IsKeyDown(Keys.Subtract) || ks.IsKeyDown(Keys.OemMinus))
+                fov += 0.1f;
 
             // Toggle Map
             if (ks.IsKeyDown(Keys.M) && previousKey.IsKeyUp(Keys.M))
@@ -254,7 +223,7 @@ namespace COMP7615Asgn3
                 ResetPosition();
 
             // Show Map and Current Position
-            maze.Update(new Vector2(transX * -1, transZ * -1));
+            maze.Update(new Vector2(-player.transX, -player.transZ));
 
             // Generate New Map
             if (ks.IsKeyDown(Keys.R) && previousKey.IsKeyUp(Keys.R))
@@ -266,76 +235,19 @@ namespace COMP7615Asgn3
 
             if (ks.IsKeyDown(Keys.W))
             {
-                float xPart = (float)Math.Sin(angleX) * 0.05f;
-                float zPart = (float)Math.Cos(angleX) * 0.05f;
-
-                if (isClip)
-                {
-                    transX -= xPart;
-                    transZ += zPart;
-                }
-                else
-                {
-                    Vector2 displacement = TryMove(new Vector2(xPart, zPart));
-                    transX -= displacement.X;
-                    transZ += displacement.Y;
-                }
-                    
+                player.Move(Defs.Move.Forward, isClip, cubes);
             }
             if (ks.IsKeyDown(Keys.S))
             {
-                float xPart = (float)Math.Sin(angleX) * 0.05f;
-                float zPart = (float)Math.Cos(angleX) * 0.05f;
-
-                if (isClip)
-                {
-                    transX += xPart;
-                    transZ -= zPart;
-                }
-                else
-                {
-                    Vector2 displacement = TryMove(new Vector2(-xPart, -zPart));
-                    transX -= displacement.X;
-                    transZ += displacement.Y;
-                }
+                player.Move(Defs.Move.Backward, isClip, cubes);
             }
             if (ks.IsKeyDown(Keys.A))
             {
-                if (isClip)
-                {
-                    // Needs Fix
-                    float xPart = (float)Math.Cos(angleX) * 0.05f;
-                    float zPart = (float)Math.Sin(angleX) * 0.05f;
-                    transX -= xPart;
-                    transZ += zPart;
-                }
-                else
-                {
-                    float xPart = (float)Math.Cos(angleX) * 0.05f;
-                    float zPart = (float)Math.Sin(angleX) * 0.05f;
-                    Vector2 displacement = TryMove(new Vector2(-xPart, zPart));
-                    transX -= displacement.X;
-                    transZ += displacement.Y;
-                }
+                player.Move(Defs.Move.Left, isClip, cubes);
             }
             if (ks.IsKeyDown(Keys.D))
             {
-                if (isClip)
-                {
-                    // Needs Fix
-                    float xPart = (float)Math.Cos(angleX) * 0.05f;
-                    float zPart = (float)Math.Sin(angleX) * 0.05f;
-                    transX += xPart;
-                    transZ -= zPart;
-                }
-                else
-                {
-                    float xPart = (float)Math.Cos(angleX) * 0.05f;
-                    float zPart = (float)Math.Sin(angleX) * 0.05f;
-                    Vector2 displacement = TryMove(new Vector2(xPart, -zPart));
-                    transX -= displacement.X;
-                    transZ += displacement.Y;
-                }
+                player.Move(Defs.Move.Right, isClip, cubes);
             }
 
             // Set Previous KeyboardState
@@ -344,18 +256,18 @@ namespace COMP7615Asgn3
 
         private void UpdateCamera()
         {
-            Matrix R = Matrix.CreateRotationY(angleX) * Matrix.CreateRotationX(angleY) * Matrix.CreateRotationZ(angleZ);
-            Matrix T = Matrix.CreateTranslation(transX, 0, transZ);
+            Matrix R = Matrix.CreateRotationY(player.angleX) * Matrix.CreateRotationX(player.angleY) * Matrix.CreateRotationZ(player.angleZ);
+            Matrix T = Matrix.CreateTranslation(player.transX, 0, player.transZ);
             
             view = T * R;
             projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(fov), (float)this.Window.ClientBounds.Width / (float)this.Window.ClientBounds.Height, 0.1f, 100f);
 
             // Reset Angles
-            if (angleX > 2 * Math.PI)
-                angleX = 0;
+            if (player.angleX > 2 * Math.PI)
+                player.angleX = 0;
 
-            if (angleY > 2 * Math.PI)
-                angleY = 0;
+            if (player.angleY > 2 * Math.PI)
+                player.angleY = 0;
         }
 
         private void EnemyMovement()
@@ -398,8 +310,9 @@ namespace COMP7615Asgn3
                 DrawModel(cube.Model, cube.Position, -(float)Math.PI, 0, 1);
             }
 
+            Vector3 cartmanPosition = new Vector3(cartman.transX, 0.05f, cartman.transZ);
             // Render Cartman
-            DrawModel(cartmanModel, cartmanPosition, -(float)MathHelper.PiOver2, -cartmanAngle, 0.1f);
+            DrawModel(cartmanModel, cartmanPosition, -(float)MathHelper.PiOver2, -cartman.angleZ, 0.1f);
 
             // Flashlight
             if (isFlash)
@@ -513,9 +426,9 @@ namespace COMP7615Asgn3
         private void ResetPosition()
         {
             fov = 70;
-            transX = 0;
-            transZ = -2;
-            angleX = MathHelper.PiOver2;
+            player.transX = 0;
+            player.transZ = -2;
+            player.angleX = MathHelper.PiOver2;
         }
     }
 }

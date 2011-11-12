@@ -6,11 +6,15 @@ using Microsoft.Xna.Framework;
 
 namespace COMP7615Asgn3
 {
+    /// <summary>
+    /// This class holds constants used throughout the program.
+    /// </summary>
     class Defs
     {
-        public const int RandomPath = 20;
-        public const int MapWidth = 10;
-        public const int MapHeight = 10;
+        public const int RandomPath = 20; // Number of blocks to make walkable to create additional paths
+        public const int MapWidth = 20; // Map width (X)
+        public const int MapHeight = 20; // Map height (Z)
         public enum Direction { N = 1, S = 2, E = 3, W = 4 };
+        public enum Move { Forward, Backward, Left, Right };
     }
 }

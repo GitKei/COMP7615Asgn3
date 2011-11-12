@@ -8,6 +8,9 @@ using Microsoft.Xna.Framework.Input;
 
 namespace COMP7615Asgn3
 {
+    /// <summary>
+    /// This class contains the state and creation logic for the 2D Maze.
+    /// </summary>
     class Maze
     {
         int[,] cells;
@@ -18,6 +21,12 @@ namespace COMP7615Asgn3
 
         KeyboardState previousKey;
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="white">Texture to use for walkable map spaces.</param>
+        /// <param name="black">Texture to use for wall map spaces.</param>
+        /// <param name="red">Texture to use for current player space.</param>
         public Maze(Texture2D white, Texture2D black, Texture2D red)
         {
             whiteTex = white;
@@ -29,6 +38,9 @@ namespace COMP7615Asgn3
             GenerateMaze();
         }
 
+        /// <summary>
+        /// Call this method to generate a new random maze of the size set by the default Map Width and Height.
+        /// </summary>
         public void GenerateMaze()
         {
             Random random = new Random();
@@ -86,6 +98,13 @@ namespace COMP7615Asgn3
             }
         }
 
+        /// <summary>
+        /// Call this method to mark a given block as a Wall.
+        /// </summary>
+        /// <param name="x">The X position of the wall in tiles.</param>
+        /// <param name="y">The Y position of the wall in tiles.</param>
+        /// <param name="wallList">The list of walls to add it to.</param>
+        /// <returns>Returns the new list of walls.</returns>
         private List<Vector2> Mark(int x, int y, List<Vector2> wallList)
         {
             // Remove Wall
@@ -165,6 +184,10 @@ namespace COMP7615Asgn3
             return directions[random.Next(directions.Count)];
         }
 
+        /// <summary>
+        /// Call this method to draw the minimap on the screen.
+        /// </summary>
+        /// <param name="sb">The SpriteBatch to use to draw.</param>
         public void DrawMap(SpriteBatch sb)
         {
             for (int w = 0; w < Defs.MapWidth; w++)
@@ -181,30 +204,13 @@ namespace COMP7615Asgn3
             sb.Draw(redTex, position * 20, Color.White);
         }
 
+        /// <summary>
+        /// Call this function to update the player's current position on the minimap.
+        /// </summary>
+        /// <param name="mapPosition">The player's world position in world coordinates.</param>
         public void Update(Vector2 mapPosition)
         {
             position = mapPosition / 2;
-        }
-
-        public void Move(KeyboardState ks)
-        {
-            if (ks.IsKeyDown(Keys.W) && previousKey.IsKeyUp(Keys.W))
-                if(position.Y > 0 && cells[(int)position.X, (int)position.Y - 1] == 0)
-                    position.Y -= 1;
-            if (ks.IsKeyDown(Keys.S) && previousKey.IsKeyUp(Keys.S))
-                if(position.Y < Defs.MapHeight - 1 && cells[(int)position.X, (int)position.Y + 1] == 0)
-                    position.Y += 1;
-            if (ks.IsKeyDown(Keys.A) && previousKey.IsKeyUp(Keys.A))
-                if(position.X > 0 && cells[(int)position.X - 1, (int)position.Y] == 0)
-                    position.X -= 1;
-            if (ks.IsKeyDown(Keys.D) && previousKey.IsKeyUp(Keys.D))
-                if(position.X < Defs.MapWidth - 1 && cells[(int)position.X + 1, (int)position.Y] == 0)
-                    position.X += 1;
-
-            previousKey = ks;
-
-            if (position.X == Defs.MapWidth - 1)
-                GenerateMaze();
         }
 
         public int[,] Cells
