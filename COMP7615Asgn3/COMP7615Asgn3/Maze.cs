@@ -205,6 +205,36 @@ namespace COMP7615Asgn3
         }
 
         /// <summary>
+        /// Call this method to generate a set of cube objects based on the current maze layout.
+        /// </summary>
+        /// <param name="model">The model to inject into the cubes.</param>
+        /// <returns>A list of cube objects.</returns>
+        public List<Cube> CreateMaze(Model model)
+        {
+            List<Cube> cubes;
+
+            // Get Maze Array
+            int[,] mazePos = cells;
+
+            cubes = new List<Cube>();
+
+            // Create 3D Maze
+            for (int width = 0; width < Defs.MapWidth; width++)
+            {
+                for (int height = 0; height < Defs.MapHeight; height++)
+                {
+                    if (mazePos[width, height] == 1)
+                        cubes.Add(new Cube(model, new Vector3(width * 2, 0, height * 2)));
+
+                    // Create Floor
+                    cubes.Add(new Cube(model, new Vector3(width * 2, -2, height * 2)));
+                }
+            }
+
+            return cubes;
+        }
+
+        /// <summary>
         /// Call this function to update the player's current position on the minimap.
         /// </summary>
         /// <param name="mapPosition">The player's world position in world coordinates.</param>

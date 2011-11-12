@@ -58,7 +58,8 @@ namespace COMP7615Asgn3
         Texture2D flashTexture;
         Vector2 flashPosition;
 
-        KeyboardState previousKey;
+        KeyboardState ksOld;
+        GamePadState gsOld;
 
         public Main()
         {
@@ -94,38 +95,23 @@ namespace COMP7615Asgn3
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // Generate Maze
-            maze = new Maze(Content.Load<Texture2D>("Images/White"),
-                                     Content.Load<Texture2D>("Images/Black"),
-                                     Content.Load<Texture2D>("Images/Red"));
+            maze = new Maze(Content.Load<Texture2D>("Images/White"), Content.Load<Texture2D>("Images/Black"), Content.Load<Texture2D>("Images/Red"));
 
             player = new MOB();
             cartman = new MOB();
 
             // Load Cartman
             cartmanModel = Content.Load<Model>("cartman");
-            cartman.transX = (Defs.MapWidth - 1) * 2;
-            cartman.transZ = (Defs.MapHeight - 2) * 2;
-
-            cartmanMoveFrames = 0;
-
+            
             // Load Cube Model
             cubeModel = Content.Load<Model>("cube");
 
-            CreateMaze(cubeModel);
+            cubes = maze.CreateMaze(cubeModel);
 
             ResetPosition();
 
             // Flashlight
             flashTexture = Content.Load<Texture2D>("Images/Flashlight");
-
-            /*Color[] data = new Color[flashTexture.Width * flashTexture.Height];
-
-            flashTexture.GetData<Color>(data);
-            for (int k = 0; k < data.Length; k++)
-            {
-                data[k].A = 127;
-            }
-            flashTexture.SetData<Color>(data);*/
 
             flashPosition = new Vector2(this.Window.ClientBounds.Width / 2 - flashTexture.Width / 2,
                                         this.Window.ClientBounds.Height / 2 - flashTexture.Height / 2);
@@ -151,7 +137,9 @@ namespace COMP7615Asgn3
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            HandleKeyboard();
+            maze.Update(new Vector2(-player.transX, -player.transZ));
+
+            HandleInput();
             HandleMouse();
             UpdateCamera();
             EnemyMovement();
@@ -159,6 +147,9 @@ namespace COMP7615Asgn3
             base.Update(gameTime);
         }
 
+        /// <summary>
+        /// Handle mouse movement.
+        /// </summary>
         private void HandleMouse()
         {
             MouseState ms = Mouse.GetState();
@@ -174,86 +165,84 @@ namespace COMP7615Asgn3
             }
         }
 
-        private void HandleKeyboard()
+        /// <summary>
+        /// Handle Keyboard and Gamepad input since they are basically identical.
+        /// </summary>
+        private void HandleInput()
         {
             KeyboardState ks = Keyboard.GetState();
+            GamePadState gs = GamePad.GetState(PlayerIndex.One);
          
             // Close Program
-            if (ks.IsKeyDown(Keys.Escape))
+            if (ks.IsKeyDown(Keys.Escape) || gs.Buttons.Back == ButtonState.Pressed)
                 this.Exit();
 
             // Camera Angle
-            if (ks.IsKeyDown(Keys.Left))
-                player.angleX -= 0.01f;
-            if (ks.IsKeyDown(Keys.Right))
-                player.angleX += 0.01f;
-            if (ks.IsKeyDown(Keys.Up))
-                player.angleY -= 0.01f;
-            if (ks.IsKeyDown(Keys.Down))
-                player.angleY += 0.01f;
+            if (ks.IsKeyDown(Keys.Left) || gs.ThumbSticks.Right.X < 0)
+                player.angleX -= 0.03f;
+            if (ks.IsKeyDown(Keys.Right) || gs.ThumbSticks.Right.X > 0)
+                player.angleX += 0.03f;
+            if (ks.IsKeyDown(Keys.Up) || gs.ThumbSticks.Right.Y > 0)
+                player.angleY -= 0.03f;
+            if (ks.IsKeyDown(Keys.Down) || gs.ThumbSticks.Right.Y < 0)
+                player.angleY += 0.03f;
 
             // Zoom / FOV
-            if (ks.IsKeyDown(Keys.Add) || ks.IsKeyDown(Keys.OemPlus))
+            if (ks.IsKeyDown(Keys.Add) || gs.Triggers.Right > 0)
                 fov -= 0.1f;
-            if (ks.IsKeyDown(Keys.Subtract) || ks.IsKeyDown(Keys.OemMinus))
+            if (ks.IsKeyDown(Keys.Subtract) || gs.Triggers.Left > 0)
                 fov += 0.1f;
 
             // Toggle Map
-            if (ks.IsKeyDown(Keys.M) && previousKey.IsKeyUp(Keys.M))
+            if ((ks.IsKeyDown(Keys.M) && ksOld.IsKeyUp(Keys.M)) || (gs.Buttons.Start == ButtonState.Pressed && gsOld.Buttons.Start == ButtonState.Released))
                 isMap = !isMap;
 
             // Toggle Fog
-            if (ks.IsKeyDown(Keys.G) && previousKey.IsKeyUp(Keys.G))
+            if ((ks.IsKeyDown(Keys.G) && ksOld.IsKeyUp(Keys.G)) || (gs.Buttons.A == ButtonState.Pressed && gsOld.Buttons.A == ButtonState.Released))
                 isFog = !isFog;
 
             // Toggle Flashlight
-            if (ks.IsKeyDown(Keys.F) && previousKey.IsKeyUp(Keys.F))
+            if ((ks.IsKeyDown(Keys.F) && ksOld.IsKeyUp(Keys.F)) || (gs.Buttons.B == ButtonState.Pressed && gsOld.Buttons.B == ButtonState.Released))
                 isFlash = !isFlash;
 
             // Toggle Day/Night
-            if (ks.IsKeyDown(Keys.L) && previousKey.IsKeyUp(Keys.L))
+            if ((ks.IsKeyDown(Keys.L) && ksOld.IsKeyUp(Keys.L)) || (gs.Buttons.X == ButtonState.Pressed && gsOld.Buttons.X == ButtonState.Released))
                 isDay = !isDay;
 
             // Toggle Clipping
-            if (ks.IsKeyDown(Keys.C) && previousKey.IsKeyUp(Keys.C))
+            if ((ks.IsKeyDown(Keys.C) && ksOld.IsKeyUp(Keys.C)) || (gs.Buttons.Y == ButtonState.Pressed && gsOld.Buttons.Y == ButtonState.Released))
                 isClip = !isClip;
 
             // Home
-            if (ks.IsKeyDown(Keys.Home) && previousKey.IsKeyUp(Keys.Home))
+            if ((ks.IsKeyDown(Keys.Home) && ksOld.IsKeyUp(Keys.Home)) || (gs.Buttons.LeftShoulder == ButtonState.Pressed && gsOld.Buttons.LeftShoulder == ButtonState.Released))
                 ResetPosition();
-
-            // Show Map and Current Position
-            maze.Update(new Vector2(-player.transX, -player.transZ));
 
             // Generate New Map
-            if (ks.IsKeyDown(Keys.R) && previousKey.IsKeyUp(Keys.R))
+            if ((ks.IsKeyDown(Keys.R) && ksOld.IsKeyUp(Keys.R)) || (gs.Buttons.RightShoulder == ButtonState.Pressed && gsOld.Buttons.RightShoulder == ButtonState.Released))
             {
                 maze.GenerateMaze();
-                CreateMaze(cubeModel);
+                cubes = maze.CreateMaze(cubeModel);
                 ResetPosition();
             }
-
-            if (ks.IsKeyDown(Keys.W))
-            {
+             
+            // Do Movement
+            if (ks.IsKeyDown(Keys.W) || gs.ThumbSticks.Left.Y > 0)
                 player.Move(Defs.Move.Forward, isClip, cubes);
-            }
-            if (ks.IsKeyDown(Keys.S))
-            {
+            if (ks.IsKeyDown(Keys.S) || gs.ThumbSticks.Left.Y < 0)
                 player.Move(Defs.Move.Backward, isClip, cubes);
-            }
-            if (ks.IsKeyDown(Keys.A))
-            {
+            if (ks.IsKeyDown(Keys.A) || gs.ThumbSticks.Left.X < 0)
                 player.Move(Defs.Move.Left, isClip, cubes);
-            }
-            if (ks.IsKeyDown(Keys.D))
-            {
+            if (ks.IsKeyDown(Keys.D) || gs.ThumbSticks.Left.X > 0)
                 player.Move(Defs.Move.Right, isClip, cubes);
-            }
 
             // Set Previous KeyboardState
-            previousKey = ks;
+            ksOld = ks;
+            gsOld = gs;
         }
 
+        /// <summary>
+        /// Update the our view and projection matrices based on which way the player is facing.
+        /// </summary>
         private void UpdateCamera()
         {
             Matrix R = Matrix.CreateRotationY(player.angleX) * Matrix.CreateRotationX(player.angleY) * Matrix.CreateRotationZ(player.angleZ);
@@ -270,25 +259,20 @@ namespace COMP7615Asgn3
                 player.angleY = 0;
         }
 
+        /// <summary>
+        /// Move Cartmant around the map.
+        /// </summary>
         private void EnemyMovement()
         {
-            int[,] cells = maze.Cells;
+            if (cartmanMoveFrames == 0)
+                cartmanMoveFrames = 120;
 
-            //if (cartmanMoveFrames <= 0)
-            //{
-            //    Random random = new Random();
-            //    cartmanAngle = (float)random.NextDouble() * MathHelper.TwoPi;
+            if (60 < cartmanMoveFrames && cartmanMoveFrames <= 120)
+                cartman.angleX = 3 * MathHelper.PiOver2;
+            else
+                cartman.angleX = MathHelper.PiOver2;
 
-            //    cartmanMoveFrames = 20;
-            //}
-
-            //float xPart = (float)Math.Sin(cartmanAngle) * 0.01f;
-            //float zPart = (float)Math.Cos(cartmanAngle) * 0.01f;
-
-            //Vector2 displacement = TryMove(new Vector2(xPart, -zPart));
-
-            //cartmanPosition.X -= displacement.X;
-            //cartmanPosition.Z += displacement.Y;
+            cartman.Move(Defs.Move.Forward, true, cubes);
 
             cartmanMoveFrames--;
         }
@@ -310,9 +294,9 @@ namespace COMP7615Asgn3
                 DrawModel(cube.Model, cube.Position, -(float)Math.PI, 0, 1);
             }
 
-            Vector3 cartmanPosition = new Vector3(cartman.transX, 0.05f, cartman.transZ);
+            Vector3 cartmanPosition = new Vector3(cartman.transX, -0.5f, cartman.transZ);
             // Render Cartman
-            DrawModel(cartmanModel, cartmanPosition, -(float)MathHelper.PiOver2, -cartman.angleZ, 0.1f);
+            DrawModel(cartmanModel, cartmanPosition, -(float)MathHelper.PiOver2, -cartman.angleX, 0.1f);
 
             // Flashlight
             if (isFlash)
@@ -402,33 +386,18 @@ namespace COMP7615Asgn3
             sb.End();
         }
 
-        private void CreateMaze(Model model)
-        {
-            // Get Maze Array
-            int[,] mazePos = maze.Cells;
-
-            cubes = new List<Cube>();
-
-            // Create 3D Maze
-            for (int width = 0; width < Defs.MapWidth; width++)
-            {
-                for (int height = 0; height < Defs.MapHeight; height++)
-                {
-                    if (mazePos[width, height] == 1)
-                        cubes.Add(new Cube(model, new Vector3(width * 2, 0, height * 2)));
-
-                    // Create Floor
-                    cubes.Add(new Cube(model, new Vector3(width * 2, -2, height * 2)));
-                }
-            }
-        }
-
+        /// <summary>
+        /// Reset player and enemy to starting positions.
+        /// </summary>
         private void ResetPosition()
         {
             fov = 70;
             player.transX = 0;
             player.transZ = -2;
             player.angleX = MathHelper.PiOver2;
+            cartman.transX = (Defs.MapWidth - 1) * 2 - 2.5f;
+            cartman.transZ = (Defs.MapHeight - 2) * 2;
+            cartmanMoveFrames = 0;
         }
     }
 }
