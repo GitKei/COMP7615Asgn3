@@ -260,19 +260,47 @@ namespace COMP7615Asgn3
         }
 
         /// <summary>
-        /// Move Cartmant around the map.
+        /// Move Cartman around the map.
         /// </summary>
         private void EnemyMovement()
         {
-            if (cartmanMoveFrames == 0)
-                cartmanMoveFrames = 120;
+            bool change = true;
 
-            if (60 < cartmanMoveFrames && cartmanMoveFrames <= 120)
-                cartman.angleX = 3 * MathHelper.PiOver2;
-            else
-                cartman.angleX = MathHelper.PiOver2;
+            if (cartmanMoveFrames < 0)
+            {
+                cartmanMoveFrames = 40;
 
-            cartman.Move(Defs.Move.Forward, true, cubes);
+                Random random = new Random();
+
+                int dir = maze.CheckCell(new Vector2(cartman.transX / 2, cartman.transZ / 2));
+
+                switch (dir)
+                {
+                    case (int)Defs.Direction.N:
+                        cartman.angleX = 2 * MathHelper.PiOver2;
+                        break;
+                    case (int)Defs.Direction.S:
+                        cartman.angleX = 4 * MathHelper.PiOver2;
+                        break;
+                    case (int)Defs.Direction.E:
+                        cartman.angleX = 3 * MathHelper.PiOver2;
+                        break;
+                    case (int)Defs.Direction.W:
+                        cartman.angleX = 1 * MathHelper.PiOver2;
+                        break;
+                    default:
+                        change = false;
+                        break;
+                }
+            }
+
+            //if (60 < cartmanMoveFrames && cartmanMoveFrames <= 120)
+            //    cartman.angleX = 3 * MathHelper.PiOver2;
+            //else
+            //    cartman.angleX = MathHelper.PiOver2;
+
+            if (change)
+                cartman.Move(Defs.Move.Forward, true, cubes);
 
             cartmanMoveFrames--;
         }

@@ -167,19 +167,22 @@ namespace COMP7615Asgn3
             List<int> directions = new List<int>();
 
             // Check Each Adjacent Cell
-            if (cx + 1 < Defs.MapWidth && cells[cx + 1, cy] == 0)
-                directions.Add((int)Defs.Direction.E);
-
-            if (cx > 0 && cells[cx - 1, cy] == 0)
-                directions.Add((int)Defs.Direction.W);
-
-            if (cy > 0 && cells[cx, cy - 1] == 0)
+            if (0 < cx && cx < Defs.MapWidth && cy > 0 && cells[cx, cy - 1] == 0)
                 directions.Add((int)Defs.Direction.N);
 
-            if (cy + 1 < Defs.MapHeight && cells[cx, cy + 1] == 0)
+            if (0 < cx && cx < Defs.MapWidth && cy + 1 < Defs.MapHeight - 1 && cells[cx, cy + 1] == 0)
                 directions.Add((int)Defs.Direction.S);
 
-            return directions[random.Next(directions.Count)];
+            if (0 < cy && cy < Defs.MapHeight && cx + 1 < Defs.MapWidth - 1 && cells[cx + 1, cy] == 0)
+                directions.Add((int)Defs.Direction.E);
+
+            if (0 < cy && cy < Defs.MapHeight && cx > 0 && cells[cx - 1, cy] == 0)
+                directions.Add((int)Defs.Direction.W);
+
+            if (directions.Count > 0)
+                return directions[random.Next(directions.Count)];
+            else
+                return -1;
         }
 
         /// <summary>
