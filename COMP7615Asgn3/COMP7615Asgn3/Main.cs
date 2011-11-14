@@ -294,11 +294,6 @@ namespace COMP7615Asgn3
                 }
             }
 
-            //if (60 < cartmanMoveFrames && cartmanMoveFrames <= 120)
-            //    cartman.angleX = 3 * MathHelper.PiOver2;
-            //else
-            //    cartman.angleX = MathHelper.PiOver2;
-
             if (change)
                 cartman.Move(Defs.Move.Forward, true, cubes);
 

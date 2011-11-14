@@ -161,8 +161,9 @@ namespace COMP7615Asgn3
         public int CheckCell(Vector2 currentCell)
         {
             Random random = new Random();
-            int cx = (int)currentCell.X;
-            int cy = (int)currentCell.Y;
+
+            int cx = (int)Math.Round((double)currentCell.X);
+            int cy = (int)Math.Round((double)currentCell.Y);
 
             List<int> directions = new List<int>();
 
